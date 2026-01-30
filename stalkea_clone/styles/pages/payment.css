@@ -89,102 +89,160 @@ body {
     margin-bottom: 24px;
 }
 
-/* Timer de Escassez */
+/* Timer de Escassez - Estilo Verde Sutil */
 .timer-box {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 12px;
-    padding: 20px;
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 10px;
+    padding: 12px;
     margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .timer-label {
-    font-size: 12px;
-    color: #9CA3AF;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.timer-display {
-    font-size: 48px;
-    font-weight: 800;
-    color: #EF4444;
-    font-family: 'Courier New', monospace;
-    margin-bottom: 8px;
-    letter-spacing: 2px;
-}
-
-.timer-warning {
-    font-size: 12px;
-    color: #F87171;
-}
-
-/* Valor do Pagamento */
-.payment-value {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    background: rgba(16, 185, 129, 0.08);
-    border-radius: 10px;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.value-label {
-    font-size: 14px;
-    color: #9CA3AF;
-}
-
-.value-amount {
-    font-size: 28px;
-    font-weight: 700;
-    color: #10B981;
-}
-
-/* Referência Multibanco */
-.mb-reference-box {
-    background: rgba(11, 16, 20, 0.6);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.ref-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.ref-row:last-child {
-    margin-bottom: 0;
-}
-
-.ref-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.ref-label {
     font-size: 11px;
     color: #6B7280;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-bottom: 4px;
 }
 
-.ref-value {
-    font-size: 18px;
+.timer-display {
+    font-size: 24px;
     font-weight: 700;
-    color: #3B82F6;
+    color: #10B981;
     font-family: 'Courier New', monospace;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
 }
 
-.ref-value.highlight {
-    color: #10B981;
-    font-size: 22px;
+.timer-warning {
+    font-size: 10px;
+    color: #059669;
+    opacity: 0.8;
 }
+
+/* Referência Multibanco - Estilo Talão */
+.mb-receipt {
+    background: #fff;
+    color: #111;
+    padding: 24px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+    max-width: 320px;
+    margin: 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    transform: rotate(-1deg);
+    border-top: 1px dashed #ccc;
+    border-bottom: 1px dashed #ccc;
+}
+
+.mb-receipt::before,
+.mb-receipt::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: radial-gradient(circle, transparent 70%, #0B1014 75%);
+    background-size: 20px 20px;
+}
+
+.mb-receipt::before {
+    top: -10px;
+    background-position: 10px 10px;
+}
+
+.mb-receipt::after {
+    bottom: -10px;
+    background-position: 10px -10px;
+    transform: rotate(180deg);
+}
+
+.receipt-header {
+    text-align: center;
+    border-bottom: 1px dashed #000;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.receipt-logo {
+    height: 24px;
+    margin-bottom: 8px;
+    filter: grayscale(1);
+    opacity: 0.8;
+}
+
+.receipt-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.receipt-row:last-child {
+    margin-bottom: 0;
+}
+
+.receipt-label {
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.receipt-value {
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botão de Copiar Discreto */
+.copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-btn:hover {
+    background: #f0f0f0;
+    color: #000;
+}
+
+.copy-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.receipt-footer {
+    border-top: 1px dashed #000;
+    padding-top: 12px;
+    margin-top: 12px;
+    text-align: center;
+    font-size: 10px;
+    color: #444;
+}
+
 
 /* Instruções Card */
 .instructions-card {
