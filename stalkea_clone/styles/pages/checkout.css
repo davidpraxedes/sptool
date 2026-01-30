@@ -544,7 +544,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .footer-brand {
@@ -555,9 +555,9 @@ body {
 }
 
 .footer-logo {
-    height: 28px;
-    opacity: 0.7;
-    filter: grayscale(0.3);
+    height: 32px;
+    opacity: 0.8;
+    filter: grayscale(0.2);
     transition: all 0.3s;
 }
 
@@ -574,47 +574,15 @@ body {
 }
 
 .footer-divider {
-    width: 40px;
+    width: 50px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
-}
-
-.footer-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
+    background: linear-gradient(90deg, transparent, rgba(171, 88, 244, 0.3), transparent);
 }
 
 .footer-copyright {
     font-size: 12px;
     color: #9CA3AF;
     font-weight: 500;
-}
-
-.footer-badges {
-    display: flex;
-    gap: 12px;
-}
-
-.footer-badge {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 10px;
-    color: #10B981;
-    background: rgba(16, 185, 129, 0.08);
-    padding: 4px 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.footer-badge svg {
-    stroke: #10B981;
-    opacity: 0.8;
 }
 
 /* Responsivo */
