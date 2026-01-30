@@ -587,18 +587,37 @@ body {
 
 /* Avaliações */
 .reviews-section {
-    margin-top: 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    margin-top: 40px;
     padding: 0 4px;
+}
+
+.reviews-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #F9F9F9;
+    margin-bottom: 20px;
+    padding-left: 4px;
+    border-left: 3px solid #10B981;
+    line-height: 1.2;
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
 }
 
 .review-card {
     background: rgba(31, 41, 55, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     border-radius: 12px;
     padding: 16px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.review-card:hover {
+    background: rgba(31, 41, 55, 0.6);
+    transform: translateY(-2px);
 }
 
 .review-header {
@@ -608,17 +627,12 @@ body {
     margin-bottom: 10px;
 }
 
-.reviewer-avatar {
-    width: 36px;
-    height: 36px;
-    background: #AB58F4;
+.reviewer-photo {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: white;
-    font-size: 14px;
+    object-fit: cover;
+    border: 2px solid rgba(171, 88, 244, 0.2);
 }
 
 .reviewer-info {
@@ -635,13 +649,15 @@ body {
 
 .review-stars {
     color: #F59E0B;
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 1px;
+    margin-top: 2px;
 }
 
 .review-date {
     font-size: 11px;
     color: #6B7280;
+    font-weight: 500;
 }
 
 .review-text {
@@ -650,6 +666,7 @@ body {
     line-height: 1.5;
     font-style: italic;
 }
+
 
 /* Responsivo */
 @media (max-width: 640px) {
