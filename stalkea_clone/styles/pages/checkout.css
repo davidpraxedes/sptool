@@ -60,22 +60,22 @@ body {
     opacity: 0.95;
 }
 
-/* Badge de Segurança Alinhado - ROXO */
+/* Badge de Segurança Alinhado - VERDE */
 .security-badge {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    border: 1px solid rgba(171, 88, 244, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.3);
     border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
-    color: #AB58F4;
-    background: rgba(171, 88, 244, 0.08);
+    color: #10B981;
+    background: rgba(16, 185, 129, 0.08);
 }
 
 .security-badge svg {
-    stroke: #AB58F4;
+    stroke: #10B981;
     flex-shrink: 0;
 }
 
