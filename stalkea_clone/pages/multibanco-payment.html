@@ -13,44 +13,66 @@
     <div class="payment-container">
         <!-- Header -->
         <div class="payment-header">
-            <img src="../assets/images/logos/logo.png" alt="InstaSpy" class="payment-logo">
+            <img src="../logocheckout.png" alt="InstaSpy" class="payment-logo" style="height: 40px; width: auto;">
         </div>
 
         <!-- Status Card -->
         <div class="status-card">
-            <div class="status-icon multibanco">
-                <img src="../assets/images/payment/multibanco-logo.png" alt="Multibanco" class="method-logo">
-            </div>
-            <h1 class="status-title">Referência Gerada</h1>
-            <p class="status-subtitle">Paga em qualquer caixa Multibanco ou homebanking</p>
+            <h1 class="status-title">Pagamento Multibanco</h1>
+            <p class="status-subtitle">Paga em qualquer caixa ou homebanking</p>
 
-            <!-- Timer de Escassez -->
+            <!-- Timer de Escassez Verde -->
             <div class="timer-box">
                 <div class="timer-label">Referência válida por</div>
                 <div class="timer-display" id="timer">23:59:45</div>
-                <div class="timer-warning">Após este tempo, terás de gerar uma nova referência</div>
             </div>
 
-            <!-- Referência Multibanco -->
+            <!-- Referência em Formato de Talão -->
             <div class="mb-reference-box">
-                <div class="ref-row">
-                    <div class="ref-item">
-                        <span class="ref-label">Entidade</span>
-                        <span class="ref-value" id="mbEntity">12345</span>
+                <div class="mb-receipt">
+                    <div class="receipt-header">
+                        <img src="../assets/images/payment/multibanco-logo.png" alt="Multibanco" class="receipt-logo">
+                        <div class="receipt-title">Pagamento de Serviços</div>
                     </div>
-                    <div class="ref-item">
-                        <span class="ref-label">Referência</span>
-                        <span class="ref-value" id="mbReference">123 456 789</span>
+
+                    <div class="receipt-body">
+                        <div class="receipt-row">
+                            <span class="receipt-label">Entidade:</span>
+                            <div class="receipt-value">
+                                <span id="mbEntity">12345</span>
+                                <button class="copy-btn" onclick="copyToClipboard('mbEntity')" title="Copiar Entidade">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="receipt-row">
+                            <span class="receipt-label">Referência:</span>
+                            <div class="receipt-value">
+                                <span id="mbReference">123 456 789</span>
+                                <button class="copy-btn" onclick="copyToClipboard('mbReference')"
+                                    title="Copiar Referência">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="receipt-row">
+                            <span class="receipt-label">Montante:</span>
+                            <div class="receipt-value" style="color: #10B981;">12,90€</div>
+                        </div>
                     </div>
-                </div>
-                <div class="ref-row">
-                    <div class="ref-item">
-                        <span class="ref-label">Valor</span>
-                        <span class="ref-value highlight">12,90€</span>
-                    </div>
-                    <div class="ref-item">
-                        <span class="ref-label">Validade</span>
-                        <span class="ref-value" id="mbValidity">24h</span>
+
+                    <div class="receipt-footer">
+                        O talão serve como prova de pagamento<br>Conserve-o.
                     </div>
                 </div>
             </div>
