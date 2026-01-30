@@ -146,7 +146,7 @@ body {
 }
 
 .price-current {
-    background: linear-gradient(135deg, #AB58F4, #DF67FB);
+    background: linear-gradient(135deg, #10B981, #059669);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -163,7 +163,7 @@ body {
 }
 
 .savings-amount {
-    color: #AB58F4;
+    color: #10B981;
     font-weight: 600;
 }
 
@@ -183,7 +183,7 @@ body {
 }
 
 .form-label svg {
-    stroke: #AB58F4;
+    stroke: #10B981;
     flex-shrink: 0;
     opacity: 0.8;
 }
@@ -488,6 +488,50 @@ body {
     color: #9CA3AF;
     font-size: 14px;
     line-height: 1.6;
+}
+
+/* Copyright Footer */
+.copyright-footer {
+    text-align: center;
+    padding: 32px 20px 24px;
+    margin-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    position: relative;
+}
+
+.copyright-footer::before {
+    content: 'InstaSpy';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    font-weight: 900;
+    color: rgba(16, 185, 129, 0.02);
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: 10px;
+}
+
+.copyright-text {
+    font-size: 12px;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.copyright-logo {
+    width: 16px;
+    height: 16px;
+    opacity: 0.4;
+}
+
+.copyright-text span {
+    opacity: 0.6;
 }
 
 /* Responsivo */
