@@ -177,3 +177,18 @@ if __name__ == '__main__':
     print(f"🚀 SpyInsta Admin Server (Flask) running on port {port}")
     print("🔒 Admin Access: /admin (User: admin / Pass: Hornet600)")
     app.run(host='0.0.0.0', port=port, debug=False)
+
+# --- ERROR HANDLERS & DIAGNOSTICS ---
+@app.errorhandler(404)
+def page_not_found(e):
+    return f"PYTHON SERVER 404: Path {request.path} not found. CWD: {os.getcwd()}", 404
+
+@app.route('/health')
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'server': 'python-flask',
+        'cwd': os.getcwd(),
+        'templates_exists': os.path.exists('templates'),
+        'admin_template_exists': os.path.exists(os.path.join('templates', 'admin_index.html'))
+    })
