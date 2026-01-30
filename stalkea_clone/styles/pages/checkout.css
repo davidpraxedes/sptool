@@ -199,6 +199,18 @@ body {
     color: #6B7280;
 }
 
+/* Campo MBWay auto-preenchido - feedback visual */
+#mbwayPhone[readonly] {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.3);
+    cursor: not-allowed;
+}
+
+#mbwayPhone[readonly]::placeholder {
+    color: #10B981;
+    opacity: 0.6;
+}
+
 /* Tabs de Pagamento com Logos */
 .payment-tabs {
     display: grid;
