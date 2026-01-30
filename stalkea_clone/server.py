@@ -16,6 +16,7 @@ ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
+
 # Inicializa arquivo de pedidos se não existir
 if not os.path.exists(ORDERS_FILE):
     with open(ORDERS_FILE, 'w') as f:
