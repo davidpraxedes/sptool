@@ -62,10 +62,7 @@ def admin_dashboard():
         return redirect('/admin/login')
     return send_from_directory('admin', 'index.html')
 
-# Servir arquivos estáticos genéricos (CSS, JS, Images, outras páginas HTML)
-@app.route('/<path:path>')
-def static_proxy(path):
-    return send_from_directory('.', path)
+
 
 # --- API: AUTENTICAÇÃO ---
 
@@ -167,6 +164,12 @@ def get_orders():
     """Retorna lista de pedidos"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     return jsonify(load_orders())
+
+# Servir arquivos estáticos genéricos (CSS, JS, Images, outras páginas HTML)
+# IMPORTANTE: Esta rota deve ser a ÚLTIMA, pois captura tudo.
+@app.route('/<path:path>')
+def static_proxy(path):
+    return send_from_directory('.', path)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
