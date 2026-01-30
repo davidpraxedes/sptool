@@ -173,11 +173,19 @@ body {
 }
 
 .form-label {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 13px;
     font-weight: 500;
     margin-bottom: 8px;
     color: #D1D5DB;
+}
+
+.form-label svg {
+    stroke: #AB58F4;
+    flex-shrink: 0;
+    opacity: 0.8;
 }
 
 .form-input {
