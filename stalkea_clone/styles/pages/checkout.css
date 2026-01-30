@@ -23,9 +23,9 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.12));
+    background: linear-gradient(135deg, rgba(171, 88, 244, 0.12), rgba(223, 103, 251, 0.12));
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+    border-bottom: 1px solid rgba(171, 88, 244, 0.2);
     z-index: 1000;
     padding: 8px 0;
 }
@@ -41,7 +41,7 @@ body {
 }
 
 .announcement-content svg {
-    stroke: #10B981;
+    stroke: #AB58F4;
     flex-shrink: 0;
     opacity: 0.8;
 }
@@ -54,7 +54,7 @@ body {
 }
 
 .announcement-text strong {
-    color: #10B981;
+    color: #DF67FB;
     font-weight: 700;
 }
 
