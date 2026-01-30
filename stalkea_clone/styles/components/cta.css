@@ -2109,7 +2109,7 @@ iframe {
 }
 
 .pricing-amount {
-    font-size: clamp(56px, 12vw, 72px);
+    font-size: clamp(64px, 14vw, 88px);
     font-weight: 800;
     background: linear-gradient(135deg, #10B981 0%, #059669 100%);
     -webkit-background-clip: text;

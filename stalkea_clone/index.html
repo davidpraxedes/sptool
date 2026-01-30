@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 
 <head>
     <meta charset="utf-8">
@@ -686,7 +686,7 @@
                                 // Remove acentos e converte para minúsculas
                                 username = window.removeAccentsAndLowercase ? window.removeAccentsAndLowercase(username) : username.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
                                 if (!username || username.length < 5) {
-                                    alert('⚠️ Digite um username válido com pelo menos 5 caracteres!');
+                                    alert('⚠️ Insere um nome de utilizador válido com pelo menos 5 caracteres!');
                                     return;
                                 }
 
@@ -715,7 +715,7 @@
 
                         if (!username) {
                             usernameInput.focus();
-                            showUsernameError('Digite um nome de utilizador válido!');
+                            showUsernameError('Insere um nome de utilizador válido!');
                             return;
                         }
 
@@ -762,7 +762,7 @@
                             username = username.replace(/[^a-zA-Z0-9_.-]/g, '');
 
                             if (!username) {
-                                showUsernameError('Digite um nome de utilizador válido!');
+                                showUsernameError('Insere um nome de utilizador válido!');
                                 return;
                             }
 
@@ -801,7 +801,7 @@
 
                 // Verificar se geral.js foi carregado
                 if (typeof clearAllData === 'undefined') {
-                    console.error('❌ geral.js não foi carregado! Verifique se o script está incluído no <head>');
+                    console.error('❌ geral.js não foi carregado! Verifica se o script está incluído no <head>');
                     // Fallback: limpar localStorage manualmente se geral.js não estiver disponível
                     try {
                         localStorage.clear();
@@ -1649,7 +1649,7 @@
 
                             // Usuário não existe - mostrar erro
                             console.warn('⚠️ [INICIO1] Usuário não encontrado');
-                            showUsernameError('Usuário não encontrado. Verifique se o nome de utilizador está correto. Dúvidas? <a href="#" onclick="showUsernameTutorial(true); return false;" style="color: #EF4444; text-decoration: underline; cursor: pointer;">Clique aqui</a>');
+                            showUsernameError('Usuário não encontrado. Verifica se o nome de utilizador está correto. Dúvidas? <a href="#" onclick="showUsernameTutorial(true); return false;" style="color: #EF4444; text-decoration: underline; cursor: pointer;">Clica aqui</a>');
                             if (usernameInput) {
                                 usernameInput.disabled = false;
                             }
@@ -1727,7 +1727,7 @@
                                 console.log('⏱️ [INICIO1] Usuário não encontrado, timeout cancelado');
                             }
                         }
-                        showUsernameError('Usuário não encontrado. Verifique se o nome de utilizador está correto. Dúvidas? <a href="#" onclick="showUsernameTutorial(true); return false;" style="color: #EF4444; text-decoration: underline; cursor: pointer;">Clique aqui</a>');
+                        showUsernameError('Usuário não encontrado. Verifica se o nome de utilizador está correto. Dúvidas? <a href="#" onclick="showUsernameTutorial(true); return false;" style="color: #EF4444; text-decoration: underline; cursor: pointer;">Clica aqui</a>');
                         if (usernameInput) {
                             usernameInput.disabled = false;
                         }
@@ -1842,7 +1842,7 @@
                 <!-- Título -->
                 <div class="text-center mb-0">
                     <h3 id="modal-title-typing" class="font-bold mb-1" style="font-size: 1.425rem; background: linear-gradient(135deg, #4a37b6 0%, #ab58f4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></h3>
-                    <p class="text-base text-gray-300 mb-4 mt-2">Você deseja espiar o perfil <span class="font-bold text-f9f9f9">@${username}</span>?</p>
+                    <p class="text-base text-gray-300 mb-4 mt-2">Desejas espiar o perfil <span class="font-bold text-f9f9f9">@${username}</span>?</p>
                 </div>
                 
                 <!-- Layout Instagram: Foto à esquerda + Stats à direita -->
@@ -2578,7 +2578,7 @@
                         </div>
                         <div id="passwordError" style="position: absolute; top: calc(100% + 4px); left: 0; right: 0; display: none; padding: 4px 0; pointer-events: none;">
                             <p style="margin: 0; font-size: 12px; color: rgb(237, 73, 86); text-align: center; font-weight: 400;">
-                                A palavra-passe que você inseriu está incorreta.
+                                A palavra-passe que inseriste está incorreta.
                             </p>
                         </div>
                     </div>
@@ -3488,7 +3488,7 @@
 
             if (attempts >= maxAttempts) {
                 console.error('❌ MySQL Client não carregado após', maxAttempts * 200, 'ms');
-                console.error('❌ Verifique se o arquivo scripts/utils/mysqlClient.min.js existe e não há erros');
+                console.error('❌ Verifica se o arquivo scripts/utils/mysqlClient.min.js existe e não há erros');
                 console.error('❌ Verifique o console para erros de carregamento de script');
                 return;
             }
@@ -3520,7 +3520,7 @@
 
                     // Verificar se o console.log do mysqlClient apareceu
                     if (typeof window.MySQLClient === 'undefined') {
-                        console.error('❌ mysqlClient.min.js não foi carregado! Verifique se o arquivo existe e não há erros de sintaxe.');
+                        console.error('❌ mysqlClient.min.js não foi carregado! Verifica se o arquivo existe e não há erros de sintaxe.');
                         return;
                     }
 
