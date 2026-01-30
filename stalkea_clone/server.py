@@ -1,106 +1,175 @@
-
-import http.server
-import socketserver
-import urllib.request
-import urllib.parse
-import json
+from flask import Flask, request, jsonify, session, send_from_directory, redirect, url_for, make_response
 import os
-import sys
+import time
+import json
+from datetime import datetime, timedelta
 
-PORT = 8000
+# Inicializa Flask
+app = Flask(__name__, static_url_path='', static_folder='.')
+app.secret_key = 'HORNET600_SECRET_KEY_PRODUCTION' # Chave secreta para sessões
 
-class StalkeaProxyHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        # Intercept API calls to PHP files
-        if '/api/' in self.path and '.php' in self.path:
-            self.handle_proxy()
-        else:
-            # Serve static files normally
-            super().do_GET()
+# --- CONFIGURAÇÃO E DADOS ---
+DATA_DIR = 'data'
+ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
 
-    def handle_proxy(self):
-        # Determine the target URL on the original site
-        # Map /api/instagram.php?xyz to https://stalkea.ai/api/instagram.php?xyz
-        
-        # Extract the endpoint name (e.g., instagram.php)
-        parsed_url = urllib.parse.urlparse(self.path)
-        path_parts = parsed_url.path.split('/')
-        endpoint = path_parts[-1] # instagram.php
-        
-        # The original site might use different paths, but based on our previous PHP logic:
-        # We want to hit the equivalent endpoint on stalkea.ai. 
-        # CAUTION: We need to match the exact endpoint the original JS expects.
-        # But since we are transparently proxying, we just construct the remote URL.
-        
-        # If the original JS calls 'api/instagram.php', we forward to 'https://stalkea.ai/api/instagram.php'
-        # Note: If that 404s on their side, we might need to adjust, but let's assume direct mapping first.
-        
-        target_url = f"https://stalkea.ai/scripts/api/instagram-api.min.js" # Debug/Fallback? 
-        # Wait, the PHP I wrote earlier used 'https://stalkea.ai/api/' . endpoint.
-        # Let's stick to that pattern.
-        
-        # Real logic:
-        # We need to find WHERE the real API is. 
-        # Often it's hidden or routed. 
-        # But let's try direct mapping first as per your request "puxe igual".
-        
-        # IMPORTANT: The user said "api/instagram.php" 404'd on local server. 
-        # It's possible the original site logic (which we downloaded mostly via minified JS) 
-        # expects a specific backend structure.
-        
-        # Let's try to fetch exactly what was requested from the remote origin.
-        # Remove the leading slash for urljoin if needed, or just append strictly.
-        
-        remote_base = "https://stalkea.ai"
-        remote_url = remote_base + self.path
-        
-        print(f"🔄 Proxying request: {self.path} -> {remote_url}")
+# Garante que diretório de dados existe
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
 
-        try:
-            # Prepare the request
-            req = urllib.request.Request(remote_url)
-            
-            # Mimic headers to look like a browser visiting stalkea.ai
-            req.add_header('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-            req.add_header('Referer', 'https://stalkea.ai/')
-            req.add_header('Origin', 'https://stalkea.ai')
-            req.add_header('Accept', 'application/json, text/javascript, */*; q=0.01')
-            
-            with urllib.request.urlopen(req) as response:
-                content = response.read()
-                
-                # Send response back to our local client
-                self.send_response(response.status)
-                
-                # Forward relevant headers
-                content_type = response.getheader('Content-Type')
-                if content_type:
-                    self.send_header('Content-Type', content_type)
-                
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                
-                self.wfile.write(content)
-                
-        except urllib.error.HTTPError as e:
-            print(f"❌ Upstream error: {e.code}")
-            self.send_response(e.code)
-            self.end_headers()
-            self.wfile.write(e.read())
-            
-        except Exception as e:
-            print(f"❌ internal Proxy Error: {e}")
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+# Inicializa arquivo de pedidos se não existir
+if not os.path.exists(ORDERS_FILE):
+    with open(ORDERS_FILE, 'w') as f:
+        json.dump([], f)
 
-# Setup server
-Handler = StalkeaProxyHandler
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"🚀 Stalkea Dev Server running on port {PORT}")
-    print(f"🔥 Proxying /api/*.php requests to https://stalkea.ai")
+# --- IN-MEMORY STORAGE (LIVE VIEW) ---
+# Armazena sessões ativas: { session_id: { last_seen, ip, page, meta_data } }
+active_sessions = {}
+
+# --- FUNÇÕES AUXILIARES ---
+def load_orders():
     try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\nStopping server...")
-        httpd.shutdown()
+        with open(ORDERS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_order(order_data):
+    orders = load_orders()
+    # Adiciona Metadata
+    order_data['id'] = len(orders) + 1
+    order_data['created_at'] = datetime.now().isoformat()
+    orders.append(order_data)
+    
+    with open(ORDERS_FILE, 'w') as f:
+        json.dump(orders, f, indent=2)
+
+# --- ROTAS DE SERVIÇO DE ARQUIVOS (FRONTEND) ---
+
+@app.route('/')
+def root():
+    return send_from_directory('.', 'index.html')
+
+# Rotas do Admin (Frontend)
+@app.route('/admin/login')
+def admin_login_page():
+    return send_from_directory('admin', 'login.html')
+
+@app.route('/admin')
+@app.route('/admin/')
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if not session.get('logged_in'):
+        return redirect('/admin/login')
+    return send_from_directory('admin', 'index.html')
+
+# Servir arquivos estáticos genéricos (CSS, JS, Images, outras páginas HTML)
+@app.route('/<path:path>')
+def static_proxy(path):
+    return send_from_directory('.', path)
+
+# --- API: AUTENTICAÇÃO ---
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    if username == 'admin' and password == 'Hornet600':
+        session['logged_in'] = True
+        return jsonify({'success': True})
+    
+    return jsonify({'success': False, 'message': 'Credenciais inválidas'}), 401
+
+@app.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    session.pop('logged_in', None)
+    return jsonify({'success': True})
+
+@app.route('/api/auth/check', methods=['GET'])
+def api_auth_check():
+    return jsonify({'logged_in': session.get('logged_in', False)})
+
+# --- API: TRACKING & LIVE VIEW ---
+
+@app.route('/api/track/event', methods=['POST'])
+def track_event():
+    """Recebe eventos do frontend para Live View e Analytics"""
+    data = request.json
+    
+    # Identificação da Sessão (Cookie ou IP)
+    sid = request.cookies.get('session_id')
+    if not sid:
+        sid = request.remote_addr
+    
+    event_type = data.get('type') # pageview, search, checkout, purchase
+    
+    # Dados do Evento
+    event_data = {
+        'ip': request.remote_addr,
+        'user_agent': request.headers.get('User-Agent'),
+        'timestamp': time.time(),
+        'last_seen': datetime.now().isoformat(),
+        'page': data.get('url'),
+        'type': event_type,
+        'meta': data.get('meta', {}) # Ex: { searched_profile: '@david' }
+    }
+    
+    # Atualiza Sessão Ativa (Live View)
+    # Se já existe sessão, atualiza apenas o necessário para manter histórico se quiser
+    if sid in active_sessions:
+        # Mantém dados antigos que não mudaram (ex: meta inicial)
+        if 'meta' in active_sessions[sid]:
+             event_data['meta'] = {**active_sessions[sid]['meta'], **event_data['meta']}
+             
+    active_sessions[sid] = event_data
+    
+    # Se for compra, salva no histórico permanente
+    if event_type == 'purchase':
+        save_order(event_data)
+        
+    return jsonify({'status': 'ok'})
+
+# --- API: ADMIN DATA ---
+
+@app.route('/api/admin/live', methods=['GET'])
+def get_live_view():
+    """Retorna usuários ativos nos últimos 5 minutos"""
+    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
+    
+    now = time.time()
+    # Filtra sessões ativas (últimos 300 segundos)
+    active = []
+    
+    # Cleanup de sessões antigas
+    to_remove = []
+    
+    for sid, data in active_sessions.items():
+        if now - data['timestamp'] < 300: # 5 minutos
+            # Adiciona ID para o frontend
+            user_data = data.copy()
+            user_data['session_id'] = sid
+            active.append(user_data)
+        else:
+            to_remove.append(sid)
+            
+    # Remove inativos da memória
+    for sid in to_remove:
+        del active_sessions[sid]
+        
+    return jsonify({
+        'count': len(active),
+        'users': active
+    })
+
+@app.route('/api/admin/orders', methods=['GET'])
+def get_orders():
+    """Retorna lista de pedidos"""
+    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
+    return jsonify(load_orders())
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8000))
+    print(f"🚀 SpyInsta Admin Server (Flask) running on port {port}")
+    print("🔒 Admin Access: /admin (User: admin / Pass: Hornet600)")
+    app.run(host='0.0.0.0', port=port, debug=False)

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpyInsta Admin Access</title>
+    <link rel="stylesheet" href="../styles/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-container">
+        <form class="login-card" id="loginForm">
+            <!-- Logo ou Título -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                    style="margin-bottom: 10px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <h2 style="font-weight: 800; font-size: 24px;">
+                    <span style="color: white">SPY</span><span style="color: #10B981">INSTA</span>
+                </h2>
+                <p style="color: #6B7280; font-size: 13px; margin-top: 5px;">Acesso Restrito ao Painel</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">ID ADMIN</label>
+                <input type="text" class="form-input" id="username" placeholder="Usuário" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">CHAVE DE SEGURANÇA</label>
+                <input type="password" class="form-input" id="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <span id="btnText">ACESSAR PAINEL</span>
+            </button>
+            <p id="errorMsg"
+                style="color: #ef4444; font-size: 14px; margin-top: 15px; text-align: center; display: none; background: rgba(239, 68, 68, 0.1); padding: 8px; border-radius: 6px;">
+            </p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.querySelector('.btn-submit');
+            const btnText = document.getElementById('btnText');
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Loading State
+            btnText.textContent = 'VERIFICANDO...';
+            btn.style.opacity = '0.7';
+            errorMsg.style.display = 'none';
+
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    btnText.textContent = 'SUCESSO! REDIRECIONANDO...';
+                    btn.style.background = '#10B981';
+                    setTimeout(() => window.location.href = '/admin', 800);
+                } else {
+                    throw new Error('Credenciais Inválidas');
+                }
+            } catch (err) {
+                btnText.textContent = 'ACESSAR PAINEL';
+                btn.style.opacity = '1';
+                errorMsg.textContent = '⛔️ Acesso Negado: Verifique suas credenciais.';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

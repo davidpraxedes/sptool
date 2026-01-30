@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpyInsta Admin Dashboard</title>
+    <link rel="stylesheet" href="../styles/admin.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h2 style="font-weight: 800; font-size: 20px;">
+                    <span style="color: white">SPY</span><span style="color: #10B981">INSTA</span>
+                </h2>
+            </div>
+
+            <nav style="flex: 1;">
+                <a class="nav-item active" onclick="switchTab('live')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Live View
+                </a>
+                <a class="nav-item" onclick="switchTab('orders')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Pedidos Realizados
+                </a>
+                <a class="nav-item" onclick="alert('Funcionalidade em desenvolvimento')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Configurações
+                </a>
+            </nav>
+
+            <a class="nav-item" onclick="logout()" style="color: #ef4444; margin-top: auto;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sair
+            </a>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1 class="page-title" id="pageTitle">Live View</h1>
+                <div class="user-info text-secondary">
+                    Olá, <span class="text-green">Admin</span>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Visitantes Online</div>
+                    <div class="stat-value text-green" id="statOnline">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pedidos Hoje</div>
+                    <div class="stat-value text-purple" id="statOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Faturação Recente</div>
+                    <div class="stat-value" id="statRevenue">0,00€</div>
+                </div>
+            </div>
+
+            <!-- LIVE VIEW TAB -->
+            <div id="tab-live" class="tab-content">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Tráfego em Tempo Real</h3>
+                        <span class="status-badge status-online">Atualizando...</span>
+                    </div>
+                    <table id="liveTable">
+                        <thead>
+                            <tr>
+                                <th>IP / ID</th>
+                                <th>Localização</th>
+                                <th>Página Atual</th>
+                                <th>@ Pesquisado</th>
+                                <th>Status</th>
+                                <th>Visto Por Último</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ORDERS TAB -->
+            <div id="tab-orders" class="tab-content hidden">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Histórico de Pedidos</h3>
+                        <button onclick="fetchOrders()" class="status-badge status-checkout"
+                            style="border:none; cursor:pointer;">Atualizar</button>
+                    </div>
+                    <table id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Valor</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // State
+        let currentTab = 'live';
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLiveView();
+            fetchOrders(); // Pre-load stats
+            setInterval(fetchLiveView, 3000); // Poll every 3s
+        });
+
+        // Tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active'); // Simples active state
+
+            document.getElementById('pageTitle').textContent = tab === 'live' ? 'Live View' : 'Gestão de Pedidos';
+
+            if (tab === 'orders') fetchOrders();
+        }
+
+        // Fetch Live View
+        async function fetchLiveView() {
+            try {
+                const res = await fetch('/api/admin/live');
+                if (res.status === 401) window.location.href = '/admin/login';
+
+                const data = await res.json();
+
+                // Update Badge
+                document.getElementById('statOnline').textContent = data.count || 0;
+
+                // Render Table
+                const tbody = document.querySelector('#liveTable tbody');
+                tbody.innerHTML = '';
+
+                data.users.forEach(user => {
+                    const row = document.createElement('tr');
+
+                    // Format Page Name
+                    let pageName = user.page.replace('/', '') || 'Home';
+                    if (user.page.includes('checkout')) pageName = 'Checkout';
+                    if (user.page.includes('payment')) pageName = 'Pagamento';
+
+                    // Status Badge
+                    let statusClass = 'text-secondary';
+                    if (user.type === 'pageview') statusClass = 'text-green';
+                    if (user.type === 'checkout') statusClass = 'text-purple';
+
+                    // Meta Data (@ user)
+                    const searchedProfile = user.meta?.searched_profile || '-';
+
+                    row.innerHTML = `
+                        <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${user.session_id.substring(0, 15)}...</td>
+                        <td>PT (Simulado)</td>
+                        <td class="${statusClass} font-bold">${pageName}</td>
+                        <td style="color: #F59E0B; font-weight: 600;">${searchedProfile}</td>
+                        <td><span class="status-badge status-online">Online</span></td>
+                        <td style="font-size: 12px; color: #6B7280;">${new Date(user.timestamp * 1000).toLocaleTimeString()}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // Fetch Orders
+        async function fetchOrders() {
+            try {
+                const res = await fetch('/api/admin/orders');
+                const orders = await res.json();
+
+                // Stats
+                document.getElementById('statOrders').textContent = orders.length;
+                const total = orders.reduce((sum, o) => sum + 12.90, 0); // Assuming fixed price for MVP logic
+                document.getElementById('statRevenue').textContent = total.toFixed(2) + '€';
+
+                // Render Table
+                const tbody = document.querySelector('#ordersTable tbody');
+                tbody.innerHTML = '';
+
+                orders.reverse().forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                         <td style="font-family: 'JetBrains Mono', monospace;">#${order.id}</td>
+                         <td>${new Date(order.created_at).toLocaleString()}</td>
+                         <td>${order.meta?.customer_name || 'Desconhecido'}</td>
+                         <td>12,90€</td>
+                         <td>${order.type.toUpperCase()}</td>
+                         <td><span class="status-badge status-online">Pago</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (e) { }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/admin/login';
+        }
+    </script>
+</body>
+
+</html>

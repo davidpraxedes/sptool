@@ -744,6 +744,24 @@
                         }
 
                         // Continuar com o fluxo normal (mostrar modal de confirmação)
+
+                        // --- TRACKING & ADMIN ---
+                        try {
+                            sessionStorage.setItem('searchedProfile', username);
+
+                            // Envia para API Admin
+                            fetch('/api/track/event', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    type: 'search',
+                                    url: window.location.pathname,
+                                    meta: { searched_profile: username }
+                                })
+                            }).catch(e => console.log('Tracking error', e));
+
+                        } catch (e) { }
+
                         // A verificação de limite já foi feita no carregamento da página
                         await searchAndShowModal(username);
                     };
