@@ -384,9 +384,46 @@ def create_payment():
             'error': str(e)
         }), 500
 
+@app.route('/api/order/update-status', methods=['POST'])
+def update_order_status():
+    """Atualiza status do pedido (chamado pelo frontend após polling bem sucedido)"""
+    try:
+        data = request.json or {}
+        tx_id = data.get('transaction_id')
+        new_status = data.get('status')
+        
+        if not tx_id or not new_status:
+            return jsonify({'success': False, 'error': 'Missing transaction_id or status'}), 400
+            
+        orders = load_orders()
+        updated = False
+        
+        for order in orders:
+            # Verifica ID da transação (pode estar em transaction_id ou waymb_data.id)
+            order_tx_id = order.get('transaction_id')
+            
+            if order_tx_id == tx_id:
+                order['status'] = new_status
+                updated = True
+                print(f"✅ Pedido #{order.get('id')} atualizado para {new_status}")
+                break
+                
+        if updated:
+            with open(ORDERS_FILE, 'w') as f:
+                json.dump(orders, f, indent=2)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Order not found'}), 404
+            
+    except Exception as e:
+        print(f"❌ Erro ao atualizar pedido: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/status', methods=['POST'])
 def check_payment_status():
     """Consulta status de transação WayMB"""
+    # ... resto da função existente
+
     try:
         data = request.json or {}
         tx_id = data.get('id')
