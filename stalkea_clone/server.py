@@ -326,7 +326,7 @@ def create_payment():
             
             # 🔔 DISPARAR PUSHCUT "PEDIDO GERADO"
             try:
-                pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Assinatura%20InstaSpy%20gerado"
+                pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
                 pushcut_payload = {
                     "title": "Assinatura InstaSpy gerado",
                     "text": f"Novo pedido {method.upper()}\nValor: {amount}€\nID: {tx_id}",
