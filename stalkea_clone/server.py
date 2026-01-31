@@ -329,8 +329,9 @@ def create_payment():
         print(f"📥 WayMB Response Status: {waymb_response.status_code}")
         print(f"📥 WayMB Response Data: {waymb_data}")
         
-        if waymb_data.get('success'):
-            tx_id = waymb_data.get('data', {}).get('id')
+        # WayMB retorna statusCode 200 para sucesso, não um campo 'success'
+        if waymb_response.status_code == 200 and waymb_data.get('statusCode') == 200:
+            tx_id = waymb_data.get('transactionID') or waymb_data.get('id')
             print(f"✅ Transação criada: {tx_id}")
             
             # 🔔 DISPARAR PUSHCUT "PEDIDO GERADO"
@@ -348,7 +349,7 @@ def create_payment():
             
             return jsonify({
                 'success': True,
-                'data': waymb_data.get('data')
+                'data': waymb_data
             })
         else:
             error_msg = waymb_data.get('error', waymb_data.get('message', 'Erro desconhecido'))
