@@ -263,6 +263,29 @@ def track_event():
 
 # --- API: WAYMB PAYMENT ---
 
+@app.route('/api/test/pushcut', methods=['GET'])
+def test_pushcut():
+    """Endpoint de teste para disparar Pushcut manualmente"""
+    try:
+        pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
+        pushcut_payload = {
+            "title": "InstaSpy - Pedido Gerado (TESTE)",
+            "text": f"Novo pedido MBWAY\nValor: 12.90€\nID: TEST-{int(time.time())}",
+            "isTimeSensitive": True
+        }
+        response = requests.post(pushcut_url, json=pushcut_payload, timeout=4)
+        
+        return jsonify({
+            "success": True,
+            "message": "Pushcut disparado com sucesso!",
+            "status_code": response.status_code
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 @app.route('/api/payment', methods=['POST'])
 def create_payment():
     """Cria transação WayMB e dispara Pushcut 'Pedido Gerado'"""
