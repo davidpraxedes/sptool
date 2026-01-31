@@ -199,16 +199,21 @@ def track_event():
     # Identificação da Sessão (Cookie ou IP)
     sid = request.cookies.get('session_id')
     
-    # Lógica de Merge: Se temos SID (Cookie) mas existe uma sessão prévia por IP, mesclar.
-    if sid and real_ip in active_sessions and sid not in active_sessions:
-        # Encontrou sessão órfã por IP. Migrar para SID.
-        ip_session = active_sessions[real_ip]
-        active_sessions[sid] = ip_session # Copia dados
-        del active_sessions[real_ip]      # Remove sessão antiga
-        print(f"🔄 Merged Session: IP {real_ip} -> UUID {sid}")
-        
-    if not sid:
-        sid = real_ip # Fallback p/ IP
+    # DEBUG: Log para investigar
+    print(f"📊 Track Event: sid={sid[:15] if sid else 'None'}... ip={real_ip} type={data.get('type')}")
+    
+    # Lógica de Merge MELHORADA: Previne duplicatas
+    if sid:
+        # Se tem cookie, verificar se existe sessão órfã por IP
+        if real_ip in active_sessions and real_ip != sid:
+            # Encontrou sessão órfã por IP. Migrar para SID.
+            ip_session = active_sessions[real_ip]
+            active_sessions[sid] = ip_session # Copia dados
+            del active_sessions[real_ip]      # Remove sessão antiga
+            print(f"🔄 Merged Session: IP {real_ip} -> UUID {sid[:15]}...")
+    else:
+        # Sem cookie, usar IP como fallback
+        sid = real_ip
 
     event_type = data.get('type') # pageview, search, checkout, purchase
     
@@ -254,6 +259,7 @@ def track_event():
                 print(f"GeoIP Error: {e}")
              
     active_sessions[sid] = event_data
+    print(f"✅ Session Updated: {sid[:15] if len(str(sid)) > 15 else sid}... (Total: {len(active_sessions)})")
     
     # Se for compra, salva no histórico permanente
     if event_type == 'purchase':
