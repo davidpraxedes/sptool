@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, session, send_from_directory, redirec
 import os
 import time
 import json
+import requests
 from datetime import datetime, timedelta
 
 # Inicializa Flask
@@ -19,6 +20,7 @@ def log_request_info():
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
+STALKEA_BASE = 'https://stalkea.ai/api'
 
 # Garante que diretório de dados existe
 if not os.path.exists(DATA_DIR):
@@ -75,6 +77,87 @@ def admin_dashboard():
     return send_from_directory(templates_dir, 'admin_index.html')
 
 
+# --- API MIGRATION (PHP -> PYTHON COMPATIBILITY) ---
+
+@app.route('/api/get-ip.php', methods=['GET'])
+def api_get_ip():
+    try:
+        headers = {
+            'Referer': 'https://stalkea.ai/',
+            'User-Agent': request.headers.get('User-Agent')
+        }
+        resp = requests.get(f"{STALKEA_BASE}/get-ip.php", headers=headers, timeout=5)
+        return jsonify(resp.json())
+    except Exception as e:
+        print(f"Error fetching IP: {e}")
+        return jsonify({'ip': request.remote_addr or '127.0.0.1'})
+
+@app.route('/api/config.php', methods=['GET'])
+def api_config():
+    try:
+        headers = {
+            'Referer': 'https://stalkea.ai/',
+            'User-Agent': request.headers.get('User-Agent')
+        }
+        resp = requests.get(f"{STALKEA_BASE}/config.php", headers=headers, timeout=5)
+        return jsonify(resp.json())
+    except Exception as e:
+        print(f"Error fetching config: {e}")
+        # Default config fallback
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'pixel_fb': '',
+                'gtm_id': '',
+                'checkout_url': 'cta.html'
+            }
+        })
+
+@app.route('/api/instagram.php', methods=['GET'])
+def api_instagram():
+    try:
+        query_string = request.query_string.decode('utf-8')
+        url = f"{STALKEA_BASE}/instagram.php"
+        if query_string:
+            url += f"?{query_string}"
+            
+        headers = {
+            'Referer': 'https://stalkea.ai/',
+            'User-Agent': request.headers.get('User-Agent')
+        }
+        resp = requests.get(url, headers=headers, timeout=10)
+        return jsonify(resp.json())
+    except Exception as e:
+        print(f"Error in instagram proxy: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/leads.php', methods=['GET', 'POST'])
+def api_leads():
+    try:
+        headers = {
+            'Referer': 'https://stalkea.ai/',
+            'User-Agent': request.headers.get('User-Agent')
+        }
+        
+        if request.method == 'POST':
+            resp = requests.post(f"{STALKEA_BASE}/leads.php", json=request.json, headers=headers, timeout=10)
+            return jsonify(resp.json())
+        else:
+            query_string = request.query_string.decode('utf-8')
+            url = f"{STALKEA_BASE}/leads.php"
+            if query_string:
+                url += f"?{query_string}"
+            resp = requests.get(url, headers=headers, timeout=10)
+            return jsonify(resp.json())
+            
+    except Exception as e:
+        print(f"Error in leads proxy: {e}")
+        if request.method == 'GET':
+             return jsonify({'success': True, 'searched_remaining': 999})
+        return jsonify({'success': True, 'lead_id': f"demo_{int(time.time())}"})
 
 # --- API: AUTENTICAÇÃO ---
 
