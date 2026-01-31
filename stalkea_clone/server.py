@@ -199,6 +199,11 @@ def track_event():
     """Recebe eventos do frontend para Live View e Analytics"""
     data = request.json
     
+    # IGNORAR ADMIN do Tracking
+    page_url = data.get('url', '')
+    if '/admin' in page_url or 'admin_index' in page_url:
+        return jsonify({'status': 'ignored_admin'})
+    
     # Detecção de IP Real
     real_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if ',' in real_ip:
