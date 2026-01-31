@@ -89,7 +89,11 @@
                 <div class="data-table-container">
                     <div class="table-header">
                         <h3>Tráfego em Tempo Real</h3>
-                        <span class="status-badge status-online">Atualizando...</span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button onclick="purgeLiveView()" class="status-badge"
+                                style="background:#374151; cursor:pointer; border:none; color:#E5E7EB; font-size: 11px;">LIMPAR</button>
+                            <span class="status-badge status-online">Atualizando...</span>
+                        </div>
                     </div>
                     <table id="liveTable">
                         <thead>
@@ -278,9 +282,12 @@
                 const total = orders.reduce((sum, o) => sum + 12.90, 0); // Assuming fixed price for MVP logic
                 document.getElementById('statRevenue').textContent = total.toFixed(2) + '€';
 
+                document.getElementById('statRevenue').textContent = total.toFixed(2) + '€';
+
                 // Render Table
                 const tbody = document.querySelector('#ordersTable tbody');
                 tbody.innerHTML = '';
+
 
                 orders.reverse().forEach(order => {
                     const row = document.createElement('tr');
@@ -317,6 +324,12 @@
         async function logout() {
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.href = '/admin/login';
+        }
+
+        async function purgeLiveView() {
+            if (!confirm('Tem certeza que deseja limpar todas as sessões do Live View?')) return;
+            await fetch('/api/admin/purge-live', { method: 'POST' });
+            fetchLiveView();
         }
     </script>
 </body>
