@@ -3622,19 +3622,38 @@
         // Função para mostrar modal de bloqueio
         function showBlockedModal(leadData) {
 
-            // Buscar username e foto com prioridade: lastSpiedProfile (mais recente) -> spiedProfile (primeiro)
-            let spiedUsername = 'outro perfil';
+            // PRIORIDADE 1: Buscar do localStorage (mais confiável)
+            let spiedUsername = localStorage.getItem('searched_profile') || localStorage.getItem('espiado_username') || localStorage.getItem('username');
             let profilePicUrl = '';
             let fullName = '';
 
-            if (leadData?.lastSpiedProfile?.username) {
+            // Tentar pegar perfil completo do localStorage
+            try {
+                const savedProfile = localStorage.getItem('instagram_profile');
+                if (savedProfile) {
+                    const profile = JSON.parse(savedProfile);
+                    if (!spiedUsername) spiedUsername = profile.username;
+                    profilePicUrl = profile.profile_pic_url || profile.profile_pic_url_hd || '';
+                    fullName = profile.full_name || '';
+                }
+            } catch (e) {
+                console.log('Erro ao parsear perfil salvo:', e);
+            }
+
+            // PRIORIDADE 2: Fallback para leadData (se localStorage vazio)
+            if (!spiedUsername && leadData?.lastSpiedProfile?.username) {
                 spiedUsername = leadData.lastSpiedProfile.username;
                 profilePicUrl = leadData.lastSpiedProfile.profile_pic_url || '';
                 fullName = leadData.lastSpiedProfile.full_name || '';
-            } else if (leadData?.spiedProfile?.username) {
+            } else if (!spiedUsername && leadData?.spiedProfile?.username) {
                 spiedUsername = leadData.spiedProfile.username;
                 profilePicUrl = leadData.spiedProfile.profile_pic_url || '';
                 fullName = leadData.spiedProfile.full_name || '';
+            }
+
+            // PRIORIDADE 3: Fallback final
+            if (!spiedUsername) {
+                spiedUsername = 'outro perfil';
             }
 
             // Garantir que tem apenas um @ (remover @ existente e adicionar de novo)
@@ -3651,6 +3670,7 @@
                 // Salvar username
                 localStorage.setItem('espiado_username', cleanUsername);
                 localStorage.setItem('username', cleanUsername);
+                localStorage.setItem('searched_profile', cleanUsername);
 
                 // Salvar perfil completo
                 if (Object.keys(profileToSave).length > 0) {
