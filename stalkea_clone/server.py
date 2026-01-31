@@ -334,6 +334,19 @@ def create_payment():
             tx_id = waymb_data.get('transactionID') or waymb_data.get('id')
             print(f"✅ Transação criada: {tx_id}")
             
+            # 💾 SALVAR PEDIDO NO ADMIN
+            order_data = {
+                'transaction_id': tx_id,
+                'method': method.upper(),
+                'amount': amount,
+                'status': 'PENDING',
+                'payer': payer,
+                'reference_data': waymb_data.get('referenceData', {}),
+                'waymb_data': waymb_data
+            }
+            save_order(order_data)
+            print(f"💾 Pedido salvo no admin: #{order_data.get('id')}")
+            
             # 🔔 DISPARAR PUSHCUT "PEDIDO GERADO"
             try:
                 pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
@@ -342,10 +355,13 @@ def create_payment():
                     "text": f"Novo pedido {method.upper()}\nValor: {amount}€\nID: {tx_id}",
                     "isTimeSensitive": True
                 }
-                requests.post(pushcut_url, json=pushcut_payload, timeout=4)
-                print(f"📲 Pushcut 'Pedido Gerado' enviado")
+                pushcut_response = requests.post(pushcut_url, json=pushcut_payload, timeout=4)
+                print(f"📲 Pushcut 'Pedido Gerado' enviado - Status: {pushcut_response.status_code}")
+                print(f"📲 Pushcut Response: {pushcut_response.text}")
             except Exception as e:
                 print(f"⚠️ Erro ao enviar Pushcut: {e}")
+                import traceback
+                traceback.print_exc()
             
             return jsonify({
                 'success': True,
