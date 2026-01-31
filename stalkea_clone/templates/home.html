@@ -4,6 +4,38 @@
 <head>
     <meta charset="utf-8">
 
+    <!-- Session ID Management (Critical for correct Analytics) -->
+    <script>
+        (function () {
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            function setCookie(name, value, days) {
+                let expires = "";
+                if (days) {
+                    const date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+            }
+            function generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            if (!getCookie('session_id')) {
+                const newSid = generateUUID();
+                setCookie('session_id', newSid, 30);
+                // console.log('🍪 New Session ID generated:', newSid);
+            }
+        })();
+    </script>
+
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s); j.async = true; j.src = "https://gtm.instaspy.ai/5ctqlraxy.js?" + i; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'dlzt17c=EBxcNTg8WSgjKDY8VD0%2FRQ9FU1xdVxANRAsVEwAaEQJXGQg%3D');</script>
     <!-- End Google Tag Manager -->
@@ -146,37 +178,7 @@
         const pageUrlParams = new URLSearchParams(window.location.search);
         const isTestMode = pageUrlParams.get('test') === 'true' || pageUrlParams.get('forceRefresh') === 'true';
     </script>
-    <script>
-        // Session ID Management (Critical for correct Analytics)
-        (function () {
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-            }
-            function setCookie(name, value, days) {
-                let expires = "";
-                if (days) {
-                    const date = new Date();
-                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                    expires = "; expires=" + date.toUTCString();
-                }
-                document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
-            }
-            function generateUUID() {
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-            }
 
-            if (!getCookie('session_id')) {
-                const newSid = generateUUID();
-                setCookie('session_id', newSid, 30);
-                // console.log('🍪 New Session ID generated:', newSid);
-            }
-        })();
-    </script>
     <script>
         // Limpar cache problemático do Next.js
         (function () {

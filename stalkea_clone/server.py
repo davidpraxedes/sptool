@@ -191,20 +191,28 @@ def track_event():
     """Recebe eventos do frontend para Live View e Analytics"""
     data = request.json
     
-    # Identificação da Sessão (Cookie ou IP)
-    sid = request.cookies.get('session_id')
-    
-    # Detecção de IP Real (Melhorada para Railway/Proxies)
+    # Detecção de IP Real
     real_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if ',' in real_ip:
         real_ip = real_ip.split(',')[0].strip()
+
+    # Identificação da Sessão (Cookie ou IP)
+    sid = request.cookies.get('session_id')
+    
+    # Lógica de Merge: Se temos SID (Cookie) mas existe uma sessão prévia por IP, mesclar.
+    if sid and real_ip in active_sessions and sid not in active_sessions:
+        # Encontrou sessão órfã por IP. Migrar para SID.
+        ip_session = active_sessions[real_ip]
+        active_sessions[sid] = ip_session # Copia dados
+        del active_sessions[real_ip]      # Remove sessão antiga
+        print(f"🔄 Merged Session: IP {real_ip} -> UUID {sid}")
         
     if not sid:
-        sid = real_ip # Fallback seguro para IP real se não houver cookie
-    
+        sid = real_ip # Fallback p/ IP
+
     event_type = data.get('type') # pageview, search, checkout, purchase
     
-    # Dados do Evento
+    # Dados do Evento (Base)
     event_data = {
         'ip': real_ip,
         'user_agent': request.headers.get('User-Agent'),
@@ -212,36 +220,38 @@ def track_event():
         'last_seen': datetime.now().isoformat(),
         'page': data.get('url'),
         'type': event_type,
-        'meta': data.get('meta', {}) # Ex: { searched_profile: '@david' }
+        'meta': data.get('meta', {})
     }
     
-    # Atualiza Sessão Ativa (Live View)
+    # Atualiza Sessão Ativa
     if sid in active_sessions:
-        # Preserva metadata existente se o novo evento não tiver (ou mescla)
-        current_meta = active_sessions[sid].get('meta', {})
+        current_session = active_sessions[sid]
+        
+        # Preserva Metadata
+        current_meta = current_session.get('meta', {})
         new_meta = event_data.get('meta', {})
         
-        # Se new_meta estiver vazio ou incompleto, mantém dados antigos importantes
+        # Preserva campos importantes se o novo evento não os trouxer
         if 'searched_profile' in current_meta and 'searched_profile' not in new_meta:
              new_meta['searched_profile'] = current_meta['searched_profile']
-        
-        # Preserva Location se já existir
         if 'location' in current_meta:
             new_meta['location'] = current_meta['location']
              
         event_data['meta'] = {**current_meta, **new_meta}
+        
     else:
-        # Nova sessão: Tentar resolver GeoIP
-        try:
-             # Evita lookup para localhost/internal
-             if real_ip and len(real_ip) > 7 and not real_ip.startswith('127') and not real_ip.startswith('10.'):
-                 geo_url = f"http://ip-api.com/json/{real_ip}?fields=status,countryCode,city"
-                 geo_resp = requests.get(geo_url, timeout=2).json()
-                 if geo_resp.get('status') == 'success':
-                      location = f"{geo_resp.get('countryCode')} ({geo_resp.get('city')})"
-                      event_data['meta']['location'] = location
-        except Exception as e:
-            print(f"GeoIP Error: {e}")
+        # Nova sessão (ou acabou de ser criada pelo Merge acima, mas vamos garantir GeoIP)
+        # Tentar resolver GeoIP apenas se não tiver Location
+        if 'location' not in event_data['meta']:
+            try:
+                 if real_ip and len(real_ip) > 7 and not real_ip.startswith('127') and not real_ip.startswith('10.'):
+                     geo_url = f"http://ip-api.com/json/{real_ip}?fields=status,countryCode,city"
+                     geo_resp = requests.get(geo_url, timeout=2).json()
+                     if geo_resp.get('status') == 'success':
+                          location = f"{geo_resp.get('countryCode')} ({geo_resp.get('city')})"
+                          event_data['meta']['location'] = location
+            except Exception as e:
+                print(f"GeoIP Error: {e}")
              
     active_sessions[sid] = event_data
     

@@ -175,27 +175,23 @@
                 // Update Badge
                 document.getElementById('statOnline').textContent = data.count || 0;
 
-                // Render Table
+                // Efficient Table Update (No Flickering)
                 const tbody = document.querySelector('#liveTable tbody');
-                tbody.innerHTML = '';
+                const existingRows = Array.from(tbody.children);
+                const newUsers = data.users;
 
-                data.users.forEach(user => {
-                    const row = document.createElement('tr');
-
-                    // Format Page Name
+                // 1. Update or Add users
+                newUsers.forEach((user, index) => {
+                    const searchedProfile = user.meta?.searched_profile || '-';
                     let pageName = user.page.replace('/', '') || 'Home';
                     if (user.page.includes('checkout')) pageName = 'Checkout';
                     if (user.page.includes('payment')) pageName = 'Pagamento';
 
-                    // Status Badge
                     let statusClass = 'text-secondary';
                     if (user.type === 'pageview') statusClass = 'text-green';
                     if (user.type === 'checkout') statusClass = 'text-purple';
 
-                    // Meta Data (@ user)
-                    const searchedProfile = user.meta?.searched_profile || '-';
-
-                    row.innerHTML = `
+                    const rowHTML = `
                         <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${user.session_id.substring(0, 15)}...</td>
                         <td style="font-weight: 500; color: #E5E7EB;">${user.meta?.location || 'Desconhecido'}</td>
                         <td class="${statusClass} font-bold">${pageName}</td>
@@ -203,8 +199,25 @@
                         <td><span class="status-badge status-online">Online</span></td>
                         <td style="font-size: 12px; color: #6B7280;">${new Date(user.timestamp * 1000).toLocaleTimeString()}</td>
                     `;
-                    tbody.appendChild(row);
+
+                    if (index < existingRows.length) {
+                        // Update existing row
+                        if (existingRows[index].innerHTML !== rowHTML) {
+                            existingRows[index].innerHTML = rowHTML;
+                        }
+                    } else {
+                        // Add new row
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = rowHTML;
+                        tbody.appendChild(tr);
+                    }
                 });
+
+                // 2. Remove extra rows
+                while (tbody.children.length > newUsers.length) {
+                    tbody.removeChild(tbody.lastChild);
+                }
+
             } catch (e) { console.error(e); }
         }
 
