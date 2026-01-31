@@ -6,7 +6,7 @@
 (function () {
     // --- CONFIGURAÇÃO ---
     // ⚠️ SUBSTITUA PELO SEU PIXEL ID REAL AQUI
-    const META_PIXEL_ID = 'YOUR_PIXEL_ID_HERE';
+    const META_PIXEL_ID = '1339314570457717';
 
     // --- CÓDIGO BASE DO META PIXEL ---
     !function (f, b, e, v, n, t, s) {
