@@ -545,6 +545,13 @@ def get_live_view():
         'users': active
     })
 
+@app.route('/api/admin/purge-live', methods=['POST'])
+def purge_live_view():
+    """Limpa sessões ativas do Live View manually"""
+    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
+    active_sessions.clear()
+    return jsonify({'success': True, 'message': 'Live View resetado'})
+
 @app.route('/api/admin/orders', methods=['GET'])
 def get_orders():
     """Retorna lista de pedidos"""
