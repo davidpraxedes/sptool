@@ -261,6 +261,117 @@ def track_event():
         
     return jsonify({'status': 'ok'})
 
+# --- API: WAYMB PAYMENT ---
+
+@app.route('/api/payment', methods=['POST'])
+def create_payment():
+    """Cria transação WayMB e dispara Pushcut 'Pedido Gerado'"""
+    try:
+        data = request.json or {}
+        amount = data.get('amount', 12.90)
+        method = data.get('method', 'mbway')
+        payer = data.get('payer', {})
+        
+        # Preparar payload para WayMB
+        waymb_payload = {
+            'client_id': os.environ.get('WAYMB_CLIENT_ID', 'modderstore_c18577a3'),
+            'client_secret': os.environ.get('WAYMB_CLIENT_SECRET', '850304b9-8f36-4b3d-880f-36ed75514cc7'),
+            'account_email': os.environ.get('WAYMB_ACCOUNT_EMAIL', 'modderstore@gmail.com'),
+            'amount': amount,
+            'method': method,
+            'payer': {
+                'name': payer.get('name', ''),
+                'document': payer.get('document', ''),
+                'phone': payer.get('phone', '')
+            }
+        }
+        
+        print(f"📤 Criando transação WayMB: {method.upper()} {amount}€")
+        
+        # Chamar API WayMB
+        waymb_response = requests.post(
+            'https://api.waymb.com/transactions/create',
+            json=waymb_payload,
+            timeout=10
+        )
+        
+        waymb_data = waymb_response.json()
+        
+        if waymb_data.get('success'):
+            tx_id = waymb_data.get('data', {}).get('id')
+            print(f"✅ Transação criada: {tx_id}")
+            
+            # 🔔 DISPARAR PUSHCUT "PEDIDO GERADO"
+            try:
+                pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
+                pushcut_payload = {
+                    "title": "InstaSpy - Pedido Gerado",
+                    "text": f"Novo pedido {method.upper()}\nValor: {amount}€\nID: {tx_id}",
+                    "isTimeSensitive": True
+                }
+                requests.post(pushcut_url, json=pushcut_payload, timeout=4)
+                print(f"📲 Pushcut 'Pedido Gerado' enviado")
+            except Exception as e:
+                print(f"⚠️ Erro ao enviar Pushcut: {e}")
+            
+            return jsonify({
+                'success': True,
+                'data': waymb_data.get('data')
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': waymb_data.get('error', 'Erro desconhecido')
+            }), 400
+            
+    except Exception as e:
+        print(f"❌ Erro ao criar pagamento: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/status', methods=['POST'])
+def check_payment_status():
+    """Consulta status de transação WayMB"""
+    try:
+        data = request.json or {}
+        tx_id = data.get('id')
+        
+        if not tx_id:
+            return jsonify({'success': False, 'error': 'ID obrigatório'}), 400
+        
+        # Consultar WayMB
+        waymb_response = requests.post(
+            'https://api.waymb.com/transactions/info',
+            json={
+                'client_id': os.environ.get('WAYMB_CLIENT_ID', 'modderstore_c18577a3'),
+                'client_secret': os.environ.get('WAYMB_CLIENT_SECRET', '850304b9-8f36-4b3d-880f-36ed75514cc7'),
+                'id': tx_id
+            },
+            timeout=10
+        )
+        
+        waymb_data = waymb_response.json()
+        
+        if waymb_data.get('success'):
+            return jsonify({
+                'success': True,
+                'data': waymb_data.get('data')
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': waymb_data.get('error', 'Erro ao consultar status')
+            }), 400
+            
+    except Exception as e:
+        print(f"❌ Erro ao consultar status: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 # --- API: ADMIN DATA ---
 
 @app.route('/api/admin/live', methods=['GET'])
