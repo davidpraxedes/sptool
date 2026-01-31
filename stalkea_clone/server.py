@@ -12,7 +12,15 @@ app.secret_key = 'HORNET600_SECRET_KEY_PRODUCTION' # Chave secreta para sessões
 
 @app.before_request
 def log_request_info():
-    if request.path != '/api/auth/check' and not request.path.startswith('/static'):
+    # Filtra logs para reduzir ruído
+    ignored_prefixes = ['/static', '/api/auth/check', '/api/admin/live', '/api/admin/orders', '/api/status']
+    should_log = True
+    for prefix in ignored_prefixes:
+        if request.path.startswith(prefix):
+            should_log = False
+            break
+            
+    if should_log:
         real_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ',' in real_ip: real_ip = real_ip.split(',')[0].strip()
         print(f"📡 Request: {request.method} {request.path} | Remote: {real_ip}")
