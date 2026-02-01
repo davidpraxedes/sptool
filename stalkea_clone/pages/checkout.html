@@ -123,7 +123,7 @@
         </div>
 
         <!-- Ordenar Badge de Escassez -->
-        <div class="scarcity-badge" style="margin: 12px 0;">
+        <div class="scarcity-badge" style="margin: 4px 0 20px 0;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -644,27 +644,28 @@
             }
         }
 
-        @keyframes pulse-force-green {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            }
+        .sheen-effect {
+            background: linear-gradient(110deg, #059669 30%, #34d399 50%, #059669 70%) !important;
+            background-size: 200% 100% !important;
+            animation: sheen-flow 3s infinite linear !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+            border-bottom: 4px solid #047857 !important;
+            /* 3D effect */
+        }
 
-            50% {
-                transform: scale(1.03);
-                box-shadow: 0 0 20px 0 rgba(16, 185, 129, 0.4);
+        @keyframes sheen-flow {
+            0% {
+                background-position: 100% 0;
             }
 
             100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                background-position: -100% 0;
             }
         }
     </style>
 
     <!-- Botão de Finalizar -->
-    <button type="submit" class="btn-primary btn-futuristic" id="submitBtn"
-        style="animation: pulse-force-green 1.5s infinite !important; overflow: visible !important;">
+    <button type="submit" class="btn-primary btn-futuristic sheen-effect" id="submitBtn">
         <span>Finalizar Compra</span>
         <span class="btn-amount">12,90€</span>
     </button>
