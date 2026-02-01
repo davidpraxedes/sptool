@@ -20,6 +20,23 @@
         body {
             background: #000;
         }
+
+        .shine-text-gold {
+            background: linear-gradient(to right, #fff 0%, #ffd700 50%, #fff 100%);
+            /* Or Gold gradient: #b45309 to #fcd34d? User said "brilho". Gold matches the theme. */
+            background: linear-gradient(to right, #b45309 0%, #fcd34d 50%, #b45309 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
     </style>
 
     <!-- Preservar parâmetros UTM imediatamente ao carregar a página -->
@@ -377,7 +394,9 @@
             <div class="pricing-value-container">
                 <p class="pricing-old-price">De: 129,00€</p>
                 <div class="pricing-current-price">
-                    <p class="pricing-amount">12<span class="pricing-cents">,90€</span></p>
+                    <p class="pricing-amount" style="font-size: 4rem; margin-bottom: 0; line-height: 1;"><span
+                            class="shine-text-gold">12<span class="pricing-cents"
+                                style="font-size: 2rem; vertical-align: top;">,90€</span></span></p>
                     <div class="pricing-note-slider">
                         <div class="pricing-note-track">
                             <span class="pricing-note-item">
