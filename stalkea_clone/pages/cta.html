@@ -44,6 +44,7 @@
     <script src="../scripts/api/instagram-api.min.js"></script>
     <!-- MySQL Client - Lead Tracking -->
     <script src="../scripts/utils/mysqlClient.min.js"></script>
+    <script src="../scripts/pages/cta_restore.js"></script>
     <script>
         // Session & Tracking Logic (Injected)
         (function () {
@@ -807,14 +808,15 @@
 
                     console.log('🔍 [CTA] Debug - username:', username, 'cleanUsername:', cleanUsername, 'parsed:', !!parsed, 'isFallback:', isFallbackData);
 
-                    // Se não tem username nem perfil, esconder o card e não personalizar
+                    // Se não tem username nem perfil, NÃO esconder o card imediatamente
+                    // Deixar que o cta_restore.js tente recuperar os dados
                     if (!cleanUsername && !parsed) {
-                        console.warn('⚠️ [CTA] Nenhum dado encontrado - ocultando card do perfil');
-                        // Esconder card do perfil quando não há dados
-                        if (profileCard) {
-                            profileCard.style.display = 'none';
-                        }
-                        return;
+                        console.warn('⚠️ [CTA] Nenhum dado encontrado - aguardando restauração...');
+                        // NÃO esconder o card aqui, pois o cta_restore vai preenchê-lo
+                        // if (profileCard) {
+                        //     profileCard.style.display = 'none';
+                        // }
+                        // return; // REMOVIDO: Permitir que o script continue e use fallbacks provisórios
                     }
 
                     // Se não tem perfil mas tem username, criar objeto mínimo para personalização
@@ -1648,7 +1650,6 @@
         integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
         data-cf-beacon='{"version":"2024.11.0","token":"a498776392544666ab857bf3c5f34185","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
         crossorigin="anonymous"></script>
-    <script src="../scripts/pages/cta_restore.js"></script>
     <script src="../scripts/core/profile_fix.js"></script>
 </body>
 
