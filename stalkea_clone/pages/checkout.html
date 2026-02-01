@@ -255,19 +255,17 @@
 
     <!-- ORDER BUMPS -->
     <!-- ORDER BUMPS -->
-    <div style="margin: 24px 0 12px 0;">
+    <div style="margin: 24px 0 16px 0; padding: 0 16px; text-align: left;">
         <h3
-            style="color: #ef4444; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; text-transform: uppercase; margin-bottom: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+            style="color: #4B5563; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
                 </path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            OPORTUNIDADE ÚNICA:
+            Recomendado para você
         </h3>
-        <p style="font-size: 13px; color: #4B5563; margin: 0; line-height: 1.4;">Não feche o pedido sem adicionar estes
-            bônus exclusivos. <strong>Você não verá esta oferta novamente.</strong></p>
+        <p style="font-size: 13px; color: #6B7280; margin: 0; line-height: 1.4;">Adicione estes extras para ter uma
+            espionagem completa.</p>
     </div>
 
     <div class="checkout-card bumps-section">
@@ -357,34 +355,37 @@
 
     <style>
         .top-announcement {
-            background-color: #10B981 !important;
-            /* Green */
+            background-color: #AB58F4 !important;
+            /* Purple */
         }
 
         .bump-item {
             display: flex;
             gap: 12px;
-            padding: 12px;
-            border: 1px solid #4338ca;
-            border-radius: 12px;
-            margin-bottom: 10px;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
-            background: #3730A3;
-            /* Roxinho do sistema (Indigo-800) */
+
+            /* Gradient requested by user (matches profile-card-badge but with solid base for visibility) */
+            background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+
             align-items: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .bump-item:hover {
-            background: #312E81;
-            border-color: #4F46E5;
+            transform: translateY(-2px);
+            border-color: rgba(139, 92, 246, 0.8);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         .bump-item.active {
-            background: #312E81;
+            background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%);
             border: 2px solid #10B981;
-            box-shadow: 0 0 0 1px #10B981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
         }
 
         .bump-checkbox-wrapper {
@@ -406,8 +407,7 @@
         .bump-check-visual {
             width: 20px;
             height: 20px;
-            border: 2px solid #6366f1;
-            /* Lighter purple border */
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -441,8 +441,8 @@
             object-fit: contain;
             border-radius: 8px;
             flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
         }
 
         .bump-content {
@@ -473,8 +473,8 @@
         .bump-description {
             margin: 0;
             font-size: 12px;
-            color: #e0e7ff;
-            /* Light purple-gray text */
+            color: #e5e7eb;
+            /* Light text */
             line-height: 1.3;
         }
 
