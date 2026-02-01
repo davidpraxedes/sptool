@@ -3,6 +3,8 @@ import os
 import time
 import json
 import requests
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 
 # Inicializa Flask
@@ -28,41 +30,118 @@ def log_request_info():
 # --- CONFIGURAÇÃO E DADOS ---
 # Define diretório base absoluto para evitar erros de CWD no Railway
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
-ORDERS_FILE = os.path.join(DATA_DIR, 'orders.json')
 STALKEA_BASE = 'https://stalkea.ai/api'
 
-# Garante que diretório de dados existe
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
+# DATABASE URL (Fallback para a string fornecida pelo usuário se a ENV não existir)
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:ZciydaCzmAgnGnzrztdzmMONpqHEPNxK@yamabiko.proxy.rlwy.net:32069/railway')
 
+# --- DB HELPERS ---
 
-# Inicializa arquivo de pedidos se não existir
-if not os.path.exists(ORDERS_FILE):
-    with open(ORDERS_FILE, 'w') as f:
-        json.dump([], f)
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        print(f"❌ DB Connection Error: {e}")
+        return None
+
+def init_db():
+    conn = get_db_connection()
+    if conn:
+        try:
+            cur = conn.cursor()
+            # Tabela de Pedidos
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS orders (
+                    id SERIAL PRIMARY KEY,
+                    transaction_id TEXT UNIQUE,
+                    method TEXT,
+                    amount REAL,
+                    status TEXT,
+                    payer_json TEXT,
+                    reference_data_json TEXT,
+                    waymb_data_json TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            conn.commit()
+            print("✅ Tabela 'orders' verificada/criada com sucesso.")
+            cur.close()
+            conn.close()
+        except Exception as e:
+            print(f"❌ Erro ao criar tabelas: {e}")
+
+# Inicializa DB no startup
+try:
+    init_db()
+except:
+    pass
 
 # --- IN-MEMORY STORAGE (LIVE VIEW) ---
 # Armazena sessões ativas: { session_id: { last_seen, ip, page, meta_data } }
 active_sessions = {}
 
-# --- FUNÇÕES AUXILIARES ---
+# --- FUNÇÕES DE PEDIDOS (MIGRADAS PARA SQL) ---
+
 def load_orders():
+    conn = get_db_connection()
+    if not conn: return []
+    
     try:
-        with open(ORDERS_FILE, 'r') as f:
-            return json.load(f)
-    except:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM orders ORDER BY created_at DESC")
+        rows = cur.fetchall()
+        
+        orders = []
+        for row in rows:
+            # Reconstrói objeto parecido com o JSON original
+            order = dict(row)
+            order['payer'] = json.loads(row['payer_json']) if row['payer_json'] else {}
+            order['reference_data'] = json.loads(row['reference_data_json']) if row['reference_data_json'] else {}
+            order['waymb_data'] = json.loads(row['waymb_data_json']) if row['waymb_data_json'] else {}
+            # Formata data para string ISO se necessário, ou deixa datetime
+            if isinstance(order['created_at'], datetime):
+                order['created_at'] = order['created_at'].isoformat()
+            orders.append(order)
+            
+        cur.close()
+        conn.close()
+        return orders
+    except Exception as e:
+        print(f"❌ Erro ao carregar orders: {e}")
         return []
 
 def save_order(order_data):
-    orders = load_orders()
-    # Adiciona Metadata
-    order_data['id'] = len(orders) + 1
-    order_data['created_at'] = datetime.now().isoformat()
-    orders.append(order_data)
-    
-    with open(ORDERS_FILE, 'w') as f:
-        json.dump(orders, f, indent=2)
+    conn = get_db_connection()
+    if not conn: 
+        print("❌ DB indisponível para salvar ordem")
+        return
+        
+    try:
+        cur = conn.cursor()
+        
+        payer_json = json.dumps(order_data.get('payer', {}))
+        ref_json = json.dumps(order_data.get('reference_data', {}))
+        waymb_json = json.dumps(order_data.get('waymb_data', {}))
+        tx_id = order_data.get('transaction_id')
+        method = order_data.get('method')
+        amount = order_data.get('amount')
+        status = order_data.get('status')
+        
+        cur.execute("""
+            INSERT INTO orders (transaction_id, method, amount, status, payer_json, reference_data_json, waymb_data_json, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+            RETURNING id;
+        """, (tx_id, method, amount, status, payer_json, ref_json, waymb_json))
+        
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        print(f"💾 Pedido salvo no PostgreSQL: ID {new_id}")
+        
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"❌ Erro ao salvar ordem no DB: {e}")
 
 # --- ROTAS DE SERVIÇO DE ARQUIVOS (FRONTEND) ---
 
@@ -409,23 +488,32 @@ def update_order_status():
         if not tx_id or not new_status:
             return jsonify({'success': False, 'error': 'Missing transaction_id or status'}), 400
             
-        orders = load_orders()
-        updated = False
-        
-        for order in orders:
-            # Verifica ID da transação (pode estar em transaction_id ou waymb_data.id)
-            order_tx_id = order.get('transaction_id')
+        # ATUALIZAÇÃO VIA DB
+        conn = get_db_connection()
+        if not conn:
+             return jsonify({'error': 'Database unavailable'}), 500
+             
+        try:
+            cur = conn.cursor()
             
-            if order_tx_id == tx_id:
-                order['status'] = new_status
-                updated = True
-                print(f"✅ Pedido #{order.get('id')} atualizado para {new_status}")
+            # Atualiza status e pega dados para Pushcut
+            cur.execute("""
+                UPDATE orders 
+                SET status = %s 
+                WHERE transaction_id = %s
+                RETURNING id, method, amount, status
+            """, (new_status, tx_id))
+            
+            row = cur.fetchone()
+            conn.commit()
+            
+            if row:
+                user_id, method, amount, status = row
+                print(f"✅ Pedido #{user_id} atualizado via SQL para {new_status}")
                 
-                # 🔔 DISPARAR PUSHCUT SE PAGO
+                 # 🔔 DISPARAR PUSHCUT SE PAGO
                 if new_status == 'PAID':
                     try:
-                        amount = order.get('amount', 12.90)
-                        method = order.get('method', 'MBWAY')
                         pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
                         pushcut_payload = {
                             "title": "💸 Venda Aprovada!",
@@ -436,19 +524,24 @@ def update_order_status():
                         print(f"📲 Pushcut 'Venda Aprovada' enviado")
                     except Exception as e:
                         print(f"⚠️ Erro ao enviar Pushcut de Venda: {e}")
-                
-                break
-                
-        if updated:
-            with open(ORDERS_FILE, 'w') as f:
-                json.dump(orders, f, indent=2)
-            return jsonify({'success': True})
-        else:
-            return jsonify({'success': False, 'error': 'Order not found'}), 404
+            else:
+                 print(f"⚠️ Pedido não encontrado para TX_ID {tx_id}")
+
+            cur.close()
+            conn.close()
+            
+        except Exception as db_err:
+             print(f"Database error: {db_err}")
+             return jsonify({'error': str(db_err)}), 500
+             
+        return jsonify({'success': True})
             
     except Exception as e:
         print(f"❌ Erro ao atualizar pedido: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/status', methods=['POST'])
 def check_payment_status():
