@@ -101,7 +101,7 @@
                 <div class="profile-card-avatar-wrapper">
                     <div class="profile-card-avatar-border">
                         <div class="profile-card-avatar-inner">
-                            <img alt="Perfil" src="../assets/images/avatars/perfil-espiado.jpeg"
+                            <img alt="Perfil" src="../assets/images/avatars/perfil-espionado.jpeg"
                                 class="profile-card-avatar-img">
                         </div>
                     </div>
@@ -257,7 +257,7 @@
                         <div class="map-image-wrapper">
                             <img src="../assets/images/screenshots/fundomaps.png" alt="Mapa">
                             <div class="location-profile">
-                                <img src="../assets/images/avatars/perfil-espiado.jpeg" alt="Profile"
+                                <img src="../assets/images/avatars/perfil-espionado.jpeg" alt="Profile"
                                     class="location-profile-img">
                             </div>
                         </div>
@@ -324,7 +324,7 @@
                     <div class="chat-header">
                         <div class="chat-user-info">
                             <div class="chat-avatar"
-                                style="background-image: url('../assets/images/avatars/perfil-espiado.jpeg'); background-size: cover; background-position: center;">
+                                style="background-image: url('../assets/images/avatars/perfil-espionado.jpeg'); background-size: cover; background-position: center;">
                             </div>
                             <div>
                                 <div class="chat-name">Pessoa Investigada</div>
@@ -784,7 +784,7 @@
                                     parsed = {
                                         username: profile.username,
                                         full_name: profile.full_name || '',
-                                        profile_pic_url: profile.profile_pic_url || '../assets/images/avatars/perfil-espiado.jpeg',
+                                        profile_pic_url: profile.profile_pic_url || '../assets/images/avatars/perfil-espionado.jpeg',
                                         follower_count: profile.follower_count || 0,
                                         following_count: profile.following_count || 0,
                                         media_count: profile.media_count || 0
@@ -807,14 +807,15 @@
 
                     console.log('🔍 [CTA] Debug - username:', username, 'cleanUsername:', cleanUsername, 'parsed:', !!parsed, 'isFallback:', isFallbackData);
 
-                    // Se não tem username nem perfil, esconder o card e não personalizar
+                    // Se não tem username nem perfil, NÃO esconder o card
+                    // Deixar o fallback HTML (Pessoa Investigada / André) aparecer
                     if (!cleanUsername && !parsed) {
-                        console.warn('⚠️ [CTA] Nenhum dado encontrado - ocultando card do perfil');
-                        // Esconder card do perfil quando não há dados
-                        if (profileCard) {
-                            profileCard.style.display = 'none';
-                        }
-                        return;
+                        console.warn('⚠️ [CTA] Nenhum dado encontrado - usando fallback HTML padrão');
+                        // NÃO esconder o card!
+                        // if (profileCard) {
+                        //    profileCard.style.display = 'none';
+                        // }
+                        // return; 
                     }
 
                     // Se não tem perfil mas tem username, criar objeto mínimo para personalização
@@ -822,7 +823,7 @@
                         parsed = {
                             username: cleanUsername,
                             full_name: '',
-                            profile_pic_url: '../assets/images/avatars/perfil-espiado.jpeg'
+                            profile_pic_url: '../assets/images/avatars/perfil-espionado.jpeg'
                         };
                     }
 
@@ -862,7 +863,7 @@
                     }
 
                     // Preencher foto de perfil em todos os lugares
-                    let profilePicUrl = parsed.profile_pic_url || '../assets/images/avatars/perfil-espiado.jpeg';
+                    let profilePicUrl = parsed.profile_pic_url || '../assets/images/avatars/perfil-espionado.jpeg';
 
                     // Aplicar proxy se for URL do Instagram e ainda não tiver proxy
                     if (profilePicUrl && !profilePicUrl.includes('image-proxy.php') && (profilePicUrl.includes('cdninstagram.com') || profilePicUrl.startsWith('http://') || profilePicUrl.startsWith('https://'))) {
@@ -893,8 +894,8 @@
                     if (profileImg && profilePicUrl) {
                         profileImg.src = profilePicUrl;
                         profileImg.onerror = function () {
-                            if (this.src !== '../assets/images/avatars/perfil-espiado.jpeg') {
-                                this.src = '../assets/images/avatars/perfil-espiado.jpeg';
+                            if (this.src !== '../assets/images/avatars/perfil-espionado.jpeg') {
+                                this.src = '../assets/images/avatars/perfil-espionado.jpeg';
                             }
                         };
                     }
@@ -904,8 +905,8 @@
                     if (locationImg && profilePicUrl) {
                         locationImg.src = profilePicUrl;
                         locationImg.onerror = function () {
-                            if (this.src !== '../assets/images/avatars/perfil-espiado.jpeg') {
-                                this.src = '../assets/images/avatars/perfil-espiado.jpeg';
+                            if (this.src !== '../assets/images/avatars/perfil-espionado.jpeg') {
+                                this.src = '../assets/images/avatars/perfil-espionado.jpeg';
                             }
                         };
                     }
@@ -1285,7 +1286,9 @@
                     // Função para adicionar parâmetros UTM ao checkoutUrl
                     function addUTMParamsToCheckoutUrl(checkoutUrl) {
                         try {
-                            const checkoutUrlObj = new URL(checkoutUrl);
+                            // Handle relative URLs by providing a base
+                            const baseUrl = window.location.origin + window.location.pathname;
+                            const checkoutUrlObj = new URL(checkoutUrl, baseUrl);
                             const currentParams = new URLSearchParams(window.location.search);
 
                             // Adicionar TODOS os parâmetros da URL atual ao checkout (preservar todos os UTMs)
@@ -1296,6 +1299,7 @@
                                 }
                             });
 
+                            // If it was a relative URL, return it relative (or absolute, doesn't matter much for href)
                             return checkoutUrlObj.href;
                         } catch (e) {
                             console.error('❌ [CHECKOUT] Erro ao adicionar parâmetros UTM:', e);
