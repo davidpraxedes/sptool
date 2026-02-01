@@ -64,8 +64,22 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+
+            # Tabela Active Sessions (Live View)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS active_sessions (
+                    session_id TEXT PRIMARY KEY,
+                    ip TEXT,
+                    user_agent TEXT,
+                    page TEXT,
+                    type TEXT,
+                    meta_json TEXT,
+                    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+
             conn.commit()
-            print("✅ Tabela 'orders' verificada/criada com sucesso.")
+            print("✅ Tabelas 'orders' e 'active_sessions' verificadas/criada com sucesso.")
             cur.close()
             conn.close()
         except Exception as e:
@@ -77,9 +91,9 @@ try:
 except:
     pass
 
-# --- IN-MEMORY STORAGE (LIVE VIEW) ---
-# Armazena sessões ativas: { session_id: { last_seen, ip, page, meta_data } }
-active_sessions = {}
+# --- IN-MEMORY STORAGE (REMOVIDO - Migrado para SQL) ---
+# active_sessions agora é uma tabela no PostgreSQL
+
 
 # --- FUNÇÕES DE PEDIDOS (MIGRADAS PARA SQL) ---
 
@@ -290,73 +304,72 @@ def track_event():
 
     # Identificação da Sessão (Cookie ou IP)
     sid = request.cookies.get('session_id')
-    
-    # DEBUG: Log para investigar
-    print(f"📊 Track Event: sid={sid[:15] if sid else 'None'}... ip={real_ip} type={data.get('type')}")
-    
-    # Lógica de Merge MELHORADA: Previne duplicatas
-    if sid:
-        # Se tem cookie, verificar se existe sessão órfã por IP
-        if real_ip in active_sessions and real_ip != sid:
-            # Encontrou sessão órfã por IP. Migrar para SID.
-            ip_session = active_sessions[real_ip]
-            active_sessions[sid] = ip_session # Copia dados
-            del active_sessions[real_ip]      # Remove sessão antiga
-            print(f"🔄 Merged Session: IP {real_ip} -> UUID {sid[:15]}...")
-    else:
-        # Sem cookie, usar IP como fallback
-        sid = real_ip
+    if not sid: sid = real_ip
 
-    event_type = data.get('type') # pageview, search, checkout, purchase
+    event_type = data.get('type')
+    page_url = data.get('url')
+    new_meta = data.get('meta', {})
     
-    # Dados do Evento (Base)
-    event_data = {
-        'ip': real_ip,
-        'user_agent': request.headers.get('User-Agent'),
-        'timestamp': time.time(),
-        'last_seen': datetime.now().isoformat(),
-        'page': data.get('url'),
-        'type': event_type,
-        'meta': data.get('meta', {})
-    }
-    
-    # Atualiza Sessão Ativa
-    if sid in active_sessions:
-        current_session = active_sessions[sid]
+    conn = get_db_connection()
+    if not conn: return jsonify({'status': 'db_unavailable'})
+
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # 1. Tentar pegar sessão existente para merge de metadados
+        cur.execute("SELECT * FROM active_sessions WHERE session_id = %s", (sid,))
+        current_session = cur.fetchone()
+
+        final_meta = new_meta
+        if current_session:
+            # Merge JSON
+            current_meta_json = current_session['meta_json']
+            current_meta = json.loads(current_meta_json) if current_meta_json else {}
+            
+            # Preserva campos importantes
+            if 'searched_profile' in current_meta and 'searched_profile' not in new_meta:
+                 new_meta['searched_profile'] = current_meta['searched_profile']
+            if 'location' in current_meta:
+                new_meta['location'] = current_meta['location']
+            
+            final_meta = {**current_meta, **new_meta}
+        else:
+            # Nova Sessão - GeoIP apenas se não tiver
+            if 'location' not in final_meta:
+                try:
+                     if real_ip and len(real_ip) > 7 and not real_ip.startswith('127') and not real_ip.startswith('10.'):
+                         geo_url = f"http://ip-api.com/json/{real_ip}?fields=status,countryCode,city"
+                         # Pequeno timeout para não travar a thread
+                         geo_resp = requests.get(geo_url, timeout=1.5).json()
+                         if geo_resp.get('status') == 'success':
+                              location = f"{geo_resp.get('countryCode')} ({geo_resp.get('city')})"
+                              final_meta['location'] = location
+                except: pass
+
+        # 2. UPSERT (Insert or Update)
+        meta_json_str = json.dumps(final_meta)
         
-        # Preserva Metadata
-        current_meta = current_session.get('meta', {})
-        new_meta = event_data.get('meta', {})
+        cur.execute("""
+            INSERT INTO active_sessions (session_id, ip, user_agent, page, type, meta_json, last_seen)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            ON CONFLICT (session_id) DO UPDATE 
+            SET ip = EXCLUDED.ip,
+                user_agent = EXCLUDED.user_agent,
+                page = EXCLUDED.page,
+                type = EXCLUDED.type,
+                meta_json = EXCLUDED.meta_json,
+                last_seen = NOW();
+        """, (sid, real_ip, request.headers.get('User-Agent'), page_url, event_type, meta_json_str))
         
-        # Preserva campos importantes se o novo evento não os trouxer
-        if 'searched_profile' in current_meta and 'searched_profile' not in new_meta:
-             new_meta['searched_profile'] = current_meta['searched_profile']
-        if 'location' in current_meta:
-            new_meta['location'] = current_meta['location']
-             
-        event_data['meta'] = {**current_meta, **new_meta}
+        conn.commit()
+        cur.close()
+        conn.close()
         
-    else:
-        # Nova sessão (ou acabou de ser criada pelo Merge acima, mas vamos garantir GeoIP)
-        # Tentar resolver GeoIP apenas se não tiver Location
-        if 'location' not in event_data['meta']:
-            try:
-                 if real_ip and len(real_ip) > 7 and not real_ip.startswith('127') and not real_ip.startswith('10.'):
-                     geo_url = f"http://ip-api.com/json/{real_ip}?fields=status,countryCode,city"
-                     geo_resp = requests.get(geo_url, timeout=2).json()
-                     if geo_resp.get('status') == 'success':
-                          location = f"{geo_resp.get('countryCode')} ({geo_resp.get('city')})"
-                          event_data['meta']['location'] = location
-            except Exception as e:
-                print(f"GeoIP Error: {e}")
-             
-    active_sessions[sid] = event_data
-    print(f"✅ Session Updated: {sid[:15] if len(str(sid)) > 15 else sid}... (Total: {len(active_sessions)})")
-    
-    # REMOVIDO: save_order aqui causava duplicidade com o create_payment
-    # Apenas o create_payment deve criar pedidos novos agora
-    # if event_type == 'purchase':
-    #    save_order(event_data)
+        print(f"✅ Session Tracked (SQL): {sid[:10]}...")
+
+    except Exception as e:
+        print(f"Tracking Error: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
         
     return jsonify({'status': 'ok'})
 
@@ -627,39 +640,54 @@ def get_live_view():
     """Retorna usuários ativos nos últimos 5 minutos"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     
-    now = time.time()
-    # Filtra sessões ativas (últimos 300 segundos)
-    active = []
+    conn = get_db_connection()
+    if not conn: return jsonify({'count':0, 'users':[]})
     
-    # Cleanup de sessões antigas
-    to_remove = []
-    
-    for sid, data in active_sessions.items():
-        # Reduzido de 300s (5min) para 60s (1min) para ser mais "Live"
-        if now - data['timestamp'] < 60: 
-            # Adiciona ID para o frontend
-            user_data = data.copy()
-            user_data['session_id'] = sid
-            active_sessions[sid] = user_data # CORREÇÃO: Usar user_data (cópia) ou active_sessions[sid] não importa muito aqui pra leitura, mas append(user_data) estava certo.
-            # O código original fazia active.append(user_data). Vou manter a lógica original de append na lista local 'active'.
-            active.append(user_data)
-        else:
-            to_remove.append(sid)
-            
-    # Remove inativos da memória
-    for sid in to_remove:
-        del active_sessions[sid]
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
         
-    return jsonify({
-        'count': len(active),
-        'users': active
-    })
+        # Buscar sessões ativas nos últimos 2 minutos (para dar margem)
+        cur.execute("""
+            SELECT * FROM active_sessions 
+            WHERE last_seen > (NOW() - INTERVAL '2 minutes')
+            ORDER BY last_seen DESC
+        """)
+        rows = cur.fetchall()
+        
+        active_users = []
+        for row in rows:
+            user = dict(row)
+            user['meta'] = json.loads(row['meta_json']) if row['meta_json'] else {}
+            # Timestamp para o frontend (Unix)
+            user['timestamp'] = row['last_seen'].timestamp()
+            active_users.append(user)
+            
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'count': len(active_users),
+            'users': active_users
+        })
+    except Exception as e:
+        print(f"Live View Error: {e}")
+        return jsonify({'count':0, 'users':[]})
 
 @app.route('/api/admin/purge-live', methods=['POST'])
 def purge_live_view():
     """Limpa sessões ativas do Live View manually"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
-    active_sessions.clear()
+    
+    conn = get_db_connection()
+    if conn:
+        try:
+             cur = conn.cursor()
+             cur.execute("TRUNCATE active_sessions")
+             conn.commit()
+             cur.close()
+             conn.close()
+        except: pass
+        
     return jsonify({'success': True, 'message': 'Live View resetado'})
 
 @app.route('/api/admin/orders', methods=['GET'])
