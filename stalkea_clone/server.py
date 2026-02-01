@@ -516,7 +516,7 @@ def update_order_status():
                     try:
                         pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
                         pushcut_payload = {
-                            "title": "💸 Venda Aprovada!",
+                            "title": "🟢💸 Venda Aprovada 🟢",
                             "text": f"Pagamento confirmado {method}\nValor: {amount}€\nID: {tx_id}",
                             "isTimeSensitive": True
                         }
