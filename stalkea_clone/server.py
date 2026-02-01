@@ -509,13 +509,13 @@ def update_order_status():
         try:
             cur = conn.cursor()
             
-            # Atualiza status e pega dados para Pushcut
+            # Atualiza status e pega dados para Pushcut APENAS SE mudou
             cur.execute("""
                 UPDATE orders 
                 SET status = %s 
-                WHERE transaction_id = %s
+                WHERE transaction_id = %s AND status IS DISTINCT FROM %s
                 RETURNING id, method, amount, status
-            """, (new_status, tx_id))
+            """, (new_status, tx_id, new_status))
             
             row = cur.fetchone()
             conn.commit()
