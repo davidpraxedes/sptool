@@ -5,8 +5,8 @@
 
 (function () {
     // --- CONFIGURAÇÃO ---
-    // ⚠️ SUBSTITUA PELO SEU PIXEL ID REAL AQUI
-    const META_PIXEL_ID = '1339314570457717';
+    // Lista de Pixels a serem disparados
+    const META_PIXELS = ['1339314570457717', '1977138293153731'];
 
     // --- CÓDIGO BASE DO META PIXEL ---
     !function (f, b, e, v, n, t, s) {
@@ -21,11 +21,11 @@
     }(window, document, 'script',
         'https://connect.facebook.net/en_US/fbevents.js');
 
-    // Inicializa o Pixel
-    fbq('init', META_PIXEL_ID);
-
-    // --- LOG (Apenas para dev/debug, remover em prod se quiser limpar console) ---
-    console.log(`📡 Meta Pixel Inicializado (${META_PIXEL_ID})`);
+    // Inicializa TODOS os Pixels
+    META_PIXELS.forEach(id => {
+        fbq('init', id);
+        console.log(`📡 Meta Pixel Inicializado (${id})`);
+    });
 
     // --- TRACKING INTERNO (LIVE VIEW) ---
     const trackInternal = (eventType, additionalData = {}) => {
