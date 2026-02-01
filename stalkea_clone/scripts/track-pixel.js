@@ -6,7 +6,7 @@
 (function () {
     // --- CONFIGURAÇÃO ---
     // Lista de Pixels a serem disparados
-    const META_PIXELS = ['1339314570457717', '1977138293153731'];
+    const META_PIXELS = ['1339314570457717', '1977138293153731', '2088548998623059'];
 
     // --- CÓDIGO BASE DO META PIXEL ---
     !function (f, b, e, v, n, t, s) {
