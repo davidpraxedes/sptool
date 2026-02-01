@@ -106,16 +106,16 @@ const WayMBService = {
 
                 // Parar polling se completado ou falhou
                 if (status.status === 'COMPLETED' || status.status === 'PAID') {
-                    console.log('✅ Pagamento confirmado!');
+                    console.log('[OK] Pagamento confirmado!');
                     clearInterval(pollInterval);
                 } else if (status.status === 'FAILED' || status.status === 'EXPIRED') {
-                    console.log('❌ Pagamento falhou ou expirou');
+                    console.log('[ERROR] Pagamento falhou ou expirou');
                     clearInterval(pollInterval);
                 }
 
                 // Parar após max tentativas
                 if (attempts >= maxAttempts) {
-                    console.log('⏱️ Timeout do polling');
+                    console.log('[TIMEOUT] Timeout do polling');
                     clearInterval(pollInterval);
                 }
 
