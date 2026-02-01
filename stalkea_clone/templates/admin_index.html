@@ -199,9 +199,18 @@
                 // 1. Atualizar/Adicionar usuários
                 newUsers.forEach((user, index) => {
                     const searchedProfile = user.meta?.searched_profile || '-';
-                    let pageName = user.page.replace('/', '') || 'Home';
-                    if (user.page.includes('checkout')) pageName = 'Checkout';
-                    if (user.page.includes('payment')) pageName = 'Pagamento';
+                    // Clean up page name
+                    let pageName = user.page;
+                    if (pageName.includes('checkout')) pageName = 'Checkout';
+                    else if (pageName.includes('payment') || pageName.includes('mbway') || pageName.includes('multibanco')) pageName = 'Pagamento';
+                    else if (pageName.includes('direct')) pageName = 'Direct';
+                    else if (pageName.includes('chat-1')) pageName = 'Chat 1';
+                    else if (pageName.includes('chat-2')) pageName = 'Chat 2';
+                    else if (pageName.includes('chat-3')) pageName = 'Chat 3';
+                    else if (pageName.includes('chat-4')) pageName = 'Chat 4';
+                    else if (pageName.includes('chat-5')) pageName = 'Chat 5';
+                    else if (pageName === '/' || pageName === '/index.html') pageName = 'Home';
+                    else pageName = pageName.replace('/', '').replace('pages', '').replace('.html', '');
 
                     let statusClass = 'text-secondary';
                     if (user.type === 'pageview') statusClass = 'text-green';
@@ -209,11 +218,18 @@
 
                     const existingRow = existingRowsMap.get(user.session_id);
 
+                    // Display IP or Session ID fallback
+                    const displayId = user.ip || user.session_id.substring(0, 15) + '...';
+
                     if (existingRow) {
                         // Atualizar apenas células que mudaram
                         const cells = existingRow.children;
 
-                        // Session ID (não muda)
+                        // IP/ID
+                        if (cells[0].textContent !== displayId) {
+                            cells[0].textContent = displayId;
+                        }
+
                         // Location
                         const newLocation = user.meta?.location || 'Desconhecido';
                         if (cells[1].textContent !== newLocation) {
@@ -244,7 +260,7 @@
                         const tr = document.createElement('tr');
                         tr.dataset.sessionId = user.session_id;
                         tr.innerHTML = `
-                            <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${user.session_id.substring(0, 15)}...</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${displayId}</td>
                             <td style="font-weight: 500; color: #E5E7EB;">${user.meta?.location || 'Desconhecido'}</td>
                             <td class="${statusClass} font-bold">${pageName}</td>
                             <td style="color: #F59E0B; font-weight: 600;">${searchedProfile}</td>

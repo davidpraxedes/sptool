@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    
+
     <!-- Google Tag Manager -->
     <!-- End Google Tag Manager -->
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Instagram Direct</title>
     <link rel="shortcut icon" href="../assets/images/favicon/favicon.png">
@@ -19,6 +20,7 @@
     <script src="../scripts/utils/auth-check.min.js"></script>
     <script src="../scripts/core/geral.min.js?v=18"></script>
     <script src="../scripts/api/api.min.js?v=4"></script>
+    <script src="../scripts/track-pixel.js"></script>
     <style>
         /* Garantir que as barras de waveform tenham cor */
         .audio-recebido-waveform-bar {
@@ -30,6 +32,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Área principal de chat -->
@@ -39,14 +42,16 @@
                 <div class="chat-header-left">
                     <button type="button" class="back-button" id="backButton" aria-label="Voltar">
                         <svg width="29" height="29" viewBox="0 0 24 24" fill="none">
-                            <path d="M15.6 18.6L8.4 12L15.6 5.4" stroke="#F9F9F9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M15.6 18.6L8.4 12L15.6 5.4" stroke="#F9F9F9" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
                     </button>
-                <div class="chat-user-info">
+                    <div class="chat-user-info">
                         <button type="button" class="chat-avatar-btn" aria-label="Avatar do utilizador">
                             <span class="chat-avatar-gradient">
                                 <span class="chat-avatar-inner">
-                                    <img id="chatUserAvatar" src="https://i.pravatar.cc/150?img=2" alt="" loading="lazy" width="40" height="40" class="chat-avatar-img">
+                                    <img id="chatUserAvatar" src="https://i.pravatar.cc/150?img=2" alt="" loading="lazy"
+                                        width="40" height="40" class="chat-avatar-img">
                                 </span>
                             </span>
                         </button>
@@ -57,20 +62,30 @@
                     </div>
                 </div>
                 <div class="chat-header-right">
-                    <div class="x1i10hfl x972fbf x10w94by x1qhh985 x14e42zd x9f619 x3ct3a4 xdj266r x14z9mp xat24cr x1lziwak x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz x6s0dn4 xjbqb8w x1ejq31n x18oe1m7 x1sy0etr xstzfhl x1ypdohk x78zum5 xl56j7k x1y1aw1k xf159sx xwib8y2 xmzvs34 xcdnw81 x1epzrsm x1jplu5e x14snt5h header-icon-btn" role="button" tabindex="0">
+                    <div class="x1i10hfl x972fbf x10w94by x1qhh985 x14e42zd x9f619 x3ct3a4 xdj266r x14z9mp xat24cr x1lziwak x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz x6s0dn4 xjbqb8w x1ejq31n x18oe1m7 x1sy0etr xstzfhl x1ypdohk x78zum5 xl56j7k x1y1aw1k xf159sx xwib8y2 xmzvs34 xcdnw81 x1epzrsm x1jplu5e x14snt5h header-icon-btn"
+                        role="button" tabindex="0">
                         <div class="x6s0dn4 x78zum5 xdt5ytf xl56j7k">
-                            <svg aria-label="Ligação de áudio" class="x1lliihq x1n2onr6 x5n08af header-icon-img" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
+                            <svg aria-label="Ligação de áudio" class="x1lliihq x1n2onr6 x5n08af header-icon-img"
+                                fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
                                 <title>Ligação de áudio</title>
-                                <path d="M18.227 22.912c-4.913 0-9.286-3.627-11.486-5.828C4.486 14.83.731 10.291.921 5.231a3.289 3.289 0 0 1 .908-2.138 17.116 17.116 0 0 1 1.865-1.71 2.307 2.307 0 0 1 3.004.174 13.283 13.283 0 0 1 3.658 5.325 2.551 2.551 0 0 1-.19 1.941l-.455.853a.463.463 0 0 0-.024.387 7.57 7.57 0 0 0 4.077 4.075.455.455 0 0 0 .386-.024l.853-.455a2.548 2.548 0 0 1 1.94-.19 13.278 13.278 0 0 1 5.326 3.658 2.309 2.309 0 0 1 .174 3.003 17.319 17.319 0 0 1-1.71 1.866 3.29 3.29 0 0 1-2.138.91 10.27 10.27 0 0 1-.368.006Zm-13.144-20a.27.27 0 0 0-.167.054A15.121 15.121 0 0 0 3.28 4.47a1.289 1.289 0 0 0-.36.836c-.161 4.301 3.21 8.34 5.235 10.364s6.06 5.403 10.366 5.236a1.284 1.284 0 0 0 .835-.36 15.217 15.217 0 0 0 1.504-1.637.324.324 0 0 0-.047-.41 11.62 11.62 0 0 0-4.457-3.119.545.545 0 0 0-.411.044l-.854.455a2.452 2.452 0 0 1-2.071.116 9.571 9.571 0 0 1-5.189-5.188 2.457 2.457 0 0 1 .115-2.071l.456-.855a.544.544 0 0 0 .043-.41 11.629 11.629 0 0 0-3.118-4.458.36.36 0 0 0-.244-.1Z"></path>
+                                <path
+                                    d="M18.227 22.912c-4.913 0-9.286-3.627-11.486-5.828C4.486 14.83.731 10.291.921 5.231a3.289 3.289 0 0 1 .908-2.138 17.116 17.116 0 0 1 1.865-1.71 2.307 2.307 0 0 1 3.004.174 13.283 13.283 0 0 1 3.658 5.325 2.551 2.551 0 0 1-.19 1.941l-.455.853a.463.463 0 0 0-.024.387 7.57 7.57 0 0 0 4.077 4.075.455.455 0 0 0 .386-.024l.853-.455a2.548 2.548 0 0 1 1.94-.19 13.278 13.278 0 0 1 5.326 3.658 2.309 2.309 0 0 1 .174 3.003 17.319 17.319 0 0 1-1.71 1.866 3.29 3.29 0 0 1-2.138.91 10.27 10.27 0 0 1-.368.006Zm-13.144-20a.27.27 0 0 0-.167.054A15.121 15.121 0 0 0 3.28 4.47a1.289 1.289 0 0 0-.36.836c-.161 4.301 3.21 8.34 5.235 10.364s6.06 5.403 10.366 5.236a1.284 1.284 0 0 0 .835-.36 15.217 15.217 0 0 0 1.504-1.637.324.324 0 0 0-.047-.41 11.62 11.62 0 0 0-4.457-3.119.545.545 0 0 0-.411.044l-.854.455a2.452 2.452 0 0 1-2.071.116 9.571 9.571 0 0 1-5.189-5.188 2.457 2.457 0 0 1 .115-2.071l.456-.855a.544.544 0 0 0 .043-.41 11.629 11.629 0 0 0-3.118-4.458.36.36 0 0 0-.244-.1Z">
+                                </path>
                             </svg>
                         </div>
                     </div>
-                    <div class="x1i10hfl x972fbf x10w94by x1qhh985 x14e42zd x9f619 x3ct3a4 xdj266r x14z9mp xat24cr x1lziwak x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz x6s0dn4 xjbqb8w x1ejq31n x18oe1m7 x1sy0etr xstzfhl x1ypdohk x78zum5 xl56j7k x1y1aw1k xf159sx xwib8y2 xmzvs34 xcdnw81 x1epzrsm x1jplu5e x14snt5h header-icon-btn" role="button" tabindex="0">
+                    <div class="x1i10hfl x972fbf x10w94by x1qhh985 x14e42zd x9f619 x3ct3a4 xdj266r x14z9mp xat24cr x1lziwak x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz x6s0dn4 xjbqb8w x1ejq31n x18oe1m7 x1sy0etr xstzfhl x1ypdohk x78zum5 xl56j7k x1y1aw1k xf159sx xwib8y2 xmzvs34 xcdnw81 x1epzrsm x1jplu5e x14snt5h header-icon-btn"
+                        role="button" tabindex="0">
                         <div class="x6s0dn4 x78zum5 xdt5ytf xl56j7k">
-                            <svg aria-label="Ligação de vídeo" class="x1lliihq x1n2onr6 x5n08af header-icon-img" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
+                            <svg aria-label="Ligação de vídeo" class="x1lliihq x1n2onr6 x5n08af header-icon-img"
+                                fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
                                 <title>Ligação de vídeo</title>
-                                <rect fill="none" height="18" rx="3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="16.999" x="1" y="3"></rect>
-                                <path d="m17.999 9.146 2.495-2.256A1.5 1.5 0 0 1 23 8.003v7.994a1.5 1.5 0 0 1-2.506 1.113L18 14.854" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <rect fill="none" height="18" rx="3" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round" stroke-width="2" width="16.999" x="1" y="3"></rect>
+                                <path
+                                    d="m17.999 9.146 2.495-2.256A1.5 1.5 0 0 1 23 8.003v7.994a1.5 1.5 0 0 1-2.506 1.113L18 14.854"
+                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"></path>
                             </svg>
                         </div>
                     </div>
@@ -83,37 +98,44 @@
 
                 <!-- Texto recebido: Olá minha querida -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Olá minha querida</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Olá minha querida</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: Oi amor da minha vidq -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Oi amor da minha vidq</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Oi amor da minha vidq</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: vida* -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">vida*</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">vida*</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: Tenho saudades -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Tenho saudades</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Tenho saudades</div>
                     </div>
                 </div>
 
                 <!-- Foto recebida (Reagida com ❤️) -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
                         <div class="message-video">
                             <img src="../assets/images/screenshots/nudes1-chat1.jpg" alt="Vídeo" class="video-blurred">
@@ -131,24 +153,29 @@
 
                 <!-- Texto recebido: *Disso??* -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Disso??</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Disso??</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: 😍😍😍😍😍😍 -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">😍😍😍😍😍😍</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">😍😍😍😍😍😍</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: *Gostaste amor?* -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;"><span class="blur-word">** * ** *?</span></div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;"><span class="blur-word">** * ** *?</span></div>
                     </div>
                 </div>
 
@@ -167,16 +194,19 @@
 
                 <!-- Texto recebido: *Fala pra ela que tem sim* em (CIDADE VIZINHA DO IP) -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;"><span class="blur-word">** * **  ** **</span> casa.</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;"><span class="blur-word">** * ** ** **</span> casa.</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: *Tranquilo,* amanhã ou quinta (DIA DA SEMANA ANTERIOR A DATA ATUAL) (REAGIDA COM 👍🏻) -->
                 <div class="message sent show-time">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Tranquilo, amanhã ou depois de amanhã</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Tranquilo, amanhã ou depois de amanhã</div>
                         <div class="message-reaction">👍🏻</div>
                     </div>
                 </div>
@@ -186,17 +216,21 @@
 
                 <!-- Texto recebido: Amor -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Amor</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Amor</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: Ta podendo falar? -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Ta podendo falar?</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Ta podendo falar?</div>
                     </div>
                 </div>
 
@@ -210,46 +244,57 @@
                                 <div class="message-content reply-bg-purple">Amor</div>
                             </div>
                         </div>
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Olá amor</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Olá amor</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: Espera aí que a cabra da Brunaedd tá aqui do lado -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Espera aí que <span class="blur-word">* ** *** ** **</span> tá aqui do lado</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Espera aí que <span class="blur-word">* ** *** ** **</span> tá
+                            aqui do lado</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: ahahahahahahk -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">ahahahahahahk</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">ahahahahahahk</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: 🦌🦌🦌  ahahah (REAGIDO COM 😂) -->
                 <div class="message received show-time">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">🦌🦌🦌 ahahah</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">🦌🦌🦌 ahahah</div>
                         <div class="message-reaction">😂</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: Tô em Londrina já, só pra avisar mesmo ❤️ -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Tô em aqui. já, só pra avisar <span class="blur-word">** * **** *,  ** *</span> </div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Tô em aqui. já, só pra avisar <span class="blur-word">** * ****
+                                *, ** *</span> </div>
                         <div class="message-reaction">❤️</div>
                     </div>
                 </div>
 
                 <!-- Coração recebido: ❤️ -->
                 <div class="message received heart">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
                         <div class="message-content-heart">❤️</div>
                     </div>
@@ -258,58 +303,69 @@
                 <!-- Texto enviado: Onde estás -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Onde estás</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Onde estás</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: Na sua prima? -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content rounded-top reply-bg-purple-light" data-lines-wrapped="true">Na sua prima?</div>
+                        <div class="message-content rounded-top reply-bg-purple-light" data-lines-wrapped="true">Na sua
+                            prima?</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: Não -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
                         <div class="message-reply">
                             <div class="reply-label">respondeu-te</div>
                             <div class="reply-content-wrapper">
                                 <div class="reply-line"></div>
-                                <div class="message-content rounded-all reply-bg-purple-light" data-lines-wrapped="true">Na sua prima?</div>
+                                <div class="message-content rounded-all reply-bg-purple-light"
+                                    data-lines-wrapped="true">Na sua prima?</div>
                             </div>
                         </div>
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Não</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Não</div>
                     </div>
                 </div>
 
                 <!-- Texto recebido: (Ponto turístico/local próximo do lead) (no failback deixa Casa da "Joana") -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content rounded-top" data-lines-wrapped="true">Casa de  <span class="blur-word">** ** ** **</span></div>
+                        <div class="message-content rounded-top" data-lines-wrapped="true">Casa de <span
+                                class="blur-word">** ** ** **</span></div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: Está bem 😘 -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Está bem 😘</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Está bem 😘</div>
                     </div>
                 </div>
 
                 <!-- Texto enviado: Vou *dar uma fodida* e depois passo por aí (Reagido com ❤️) -->
                 <div class="message sent show-time">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Vou <span class="blur-word">** * ** * ** ** ** ** *</span> e depois passo por aí blz??</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Vou <span class="blur-word">** * ** * ** ** ** ** *</span> e
+                            depois passo por aí blz??</div>
                         <div class="message-reaction">❤️</div>
                     </div>
                 </div>
 
                 <!-- Áudio recebido 32seg -->
                 <div class="message received show-time">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
                         <div class="audio-recebido">
                             <button type="button" class="audio-recebido-play-btn" aria-label="Reproduzir áudio">
@@ -323,7 +379,8 @@
 
                 <!-- Áudio recebido 7seg -->
                 <div class="message received show-time">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
                         <div class="audio-recebido">
                             <button type="button" class="audio-recebido-play-btn" aria-label="Reproduzir áudio">
@@ -338,7 +395,8 @@
                 <!-- Texto enviado: Podes deixar -->
                 <div class="message sent">
                     <div class="message-bubble">
-                        <div class="message-content" unselectable="on" onselectstart="return false;" onmousedown="return false;">Podes deixar</div>
+                        <div class="message-content" unselectable="on" onselectstart="return false;"
+                            onmousedown="return false;">Podes deixar</div>
                     </div>
                 </div>
 
@@ -346,7 +404,8 @@
 
                 <!-- Coração recebido: ❤️ -->
                 <div class="message received heart">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
                         <div class="message-content-heart">❤️</div>
                     </div>
@@ -363,9 +422,12 @@
 
                 <!-- Texto recebido: (primeiro nome) adivinha o que esqueceste aqui? ahahah -->
                 <div class="message received">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User" class="message-avatar">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="User"
+                        class="message-avatar">
                     <div class="message-bubble">
-                        <div class="message-content" id="lastMessageContent" unselectable="on" onselectstart="return false;" onmousedown="return false;">adivinha o que esqueceste aqui? ahahah</div>
+                        <div class="message-content" id="lastMessageContent" unselectable="on"
+                            onselectstart="return false;" onmousedown="return false;">adivinha o que esqueceste aqui?
+                            ahahah</div>
                     </div>
                 </div>
             </div>
@@ -376,54 +438,82 @@
                 <div class="message-input-wrapper">
                     <div class="message-input-icon" id="cameraIcon">
                         <svg width="30" height="30" viewBox="0 0 83 83" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M35.8701 20.2324C36.9037 20.1103 40.2042 20.1112 43.2041 20.2353C48.5793 20.4576 48.6938 20.5 51.0635 23.1396C52.8362 25.1135 54.0022 25.8192 55.4961 25.8212C58.2213 25.8249 61.6439 28.0118 62.9863 30.6074C63.9033 32.3815 64.0484 34.7832 63.8711 45.2441C63.6631 57.5071 63.6245 57.7946 61.9541 59.6035C58.8194 62.9971 57.0546 63.3183 41.5352 63.3183C24.8984 63.3183 22.8723 62.8636 20.4717 58.5927C19.1271 56.2009 19 54.9883 19 44.624C19 31.7827 19.5716 29.4239 23.2207 27.1992C24.4616 26.4425 26.4228 25.8227 27.5791 25.8212C29.2039 25.8192 30.1703 25.2094 31.8359 23.1367C33.2186 21.4158 34.664 20.3756 35.8701 20.2324ZM41.5 33.0625C35.6751 33.0625 30.9532 37.7845 30.9531 43.6093C30.9531 49.4342 35.6751 54.1562 41.5 54.1562C47.3249 54.1562 52.0469 49.4342 52.0469 43.6093C52.0468 37.7845 47.3249 33.0625 41.5 33.0625ZM41.5 36.5781C45.3832 36.5781 48.5312 39.7261 48.5312 43.6093C48.5312 47.4926 45.3833 50.6406 41.5 50.6406C37.6167 50.6406 34.4688 47.4926 34.4688 43.6093C34.4688 39.7261 37.6168 36.5781 41.5 36.5781Z" fill="white"/>
+                            <path
+                                d="M35.8701 20.2324C36.9037 20.1103 40.2042 20.1112 43.2041 20.2353C48.5793 20.4576 48.6938 20.5 51.0635 23.1396C52.8362 25.1135 54.0022 25.8192 55.4961 25.8212C58.2213 25.8249 61.6439 28.0118 62.9863 30.6074C63.9033 32.3815 64.0484 34.7832 63.8711 45.2441C63.6631 57.5071 63.6245 57.7946 61.9541 59.6035C58.8194 62.9971 57.0546 63.3183 41.5352 63.3183C24.8984 63.3183 22.8723 62.8636 20.4717 58.5927C19.1271 56.2009 19 54.9883 19 44.624C19 31.7827 19.5716 29.4239 23.2207 27.1992C24.4616 26.4425 26.4228 25.8227 27.5791 25.8212C29.2039 25.8192 30.1703 25.2094 31.8359 23.1367C33.2186 21.4158 34.664 20.3756 35.8701 20.2324ZM41.5 33.0625C35.6751 33.0625 30.9532 37.7845 30.9531 43.6093C30.9531 49.4342 35.6751 54.1562 41.5 54.1562C47.3249 54.1562 52.0469 49.4342 52.0469 43.6093C52.0468 37.7845 47.3249 33.0625 41.5 33.0625ZM41.5 36.5781C45.3832 36.5781 48.5312 39.7261 48.5312 43.6093C48.5312 47.4926 45.3833 50.6406 41.5 50.6406C37.6167 50.6406 34.4688 47.4926 34.4688 43.6093C34.4688 39.7261 37.6168 36.5781 41.5 36.5781Z"
+                                fill="white" />
                         </svg>
                     </div>
                     <div class="message-input-icon message-input-search-icon u-hidden" id="searchIcon">
                         <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <!-- Círculo da lupa (lente) - centralizado -->
-                            <circle cx="17.5" cy="17.5" r="6.5" stroke="#F9F9F9" stroke-width="3" fill="none"/>
+                            <circle cx="17.5" cy="17.5" r="6.5" stroke="#F9F9F9" stroke-width="3" fill="none" />
                             <!-- Cabo da lupa (diagonal saindo do círculo) - 10% maior -->
-                            <line x1="23.5" y1="23.5" x2="26.25" y2="26.25" stroke="#F9F9F9" stroke-width="3" stroke-linecap="round"/>
+                            <line x1="23.5" y1="23.5" x2="26.25" y2="26.25" stroke="#F9F9F9" stroke-width="3"
+                                stroke-linecap="round" />
                         </svg>
                     </div>
                     <input type="text" placeholder="Mensagem..." class="message-input" id="messageInput">
                     <div class="message-input-actions">
                         <div class="input-action-icon">
-                            <svg aria-label="Clipe de voz" class="input-icon-img" fill="currentColor" height="22" role="img" viewBox="0 0 24 24" width="22">
+                            <svg aria-label="Clipe de voz" class="input-icon-img" fill="currentColor" height="22"
+                                role="img" viewBox="0 0 24 24" width="22">
                                 <title>Clipe de voz</title>
-                                <path d="M19.5 10.671v.897a7.5 7.5 0 0 1-15 0v-.897" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                                <line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2" x1="12" x2="12" y1="19.068" y2="22"></line>
-                                <line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="8.706" x2="15.104" y1="22" y2="22"></line>
-                                <path d="M12 15.745a4 4 0 0 1-4-4V6a4 4 0 0 1 8 0v5.745a4 4 0 0 1-4 4Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <path d="M19.5 10.671v.897a7.5 7.5 0 0 1-15 0v-.897" fill="none" stroke="currentColor"
+                                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2" x1="12"
+                                    x2="12" y1="19.068" y2="22"></line>
+                                <line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" x1="8.706" x2="15.104" y1="22" y2="22"></line>
+                                <path d="M12 15.745a4 4 0 0 1-4-4V6a4 4 0 0 1 8 0v5.745a4 4 0 0 1-4 4Z" fill="none"
+                                    stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"></path>
                             </svg>
                         </div>
                         <div class="input-action-icon">
-                            <svg aria-label="Adicionar foto ou vídeo" class="input-icon-img" fill="currentColor" height="22" role="img" viewBox="0 0 24 24" width="22">
+                            <svg aria-label="Adicionar foto ou vídeo" class="input-icon-img" fill="currentColor"
+                                height="22" role="img" viewBox="0 0 24 24" width="22">
                                 <title>Adicionar foto ou vídeo</title>
-                                <path d="M6.549 5.013A1.557 1.557 0 1 0 8.106 6.57a1.557 1.557 0 0 0-1.557-1.557Z" fill-rule="evenodd"></path>
-                                <path d="m2 18.605 3.901-3.9a.908.908 0 0 1 1.284 0l2.807 2.806a.908.908 0 0 0 1.283 0l5.534-5.534a.908.908 0 0 1 1.283 0l3.905 3.905" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path>
-                                <path d="M18.44 2.004A3.56 3.56 0 0 1 22 5.564h0v12.873a3.56 3.56 0 0 1-3.56 3.56H5.568a3.56 3.56 0 0 1-3.56-3.56V5.563a3.56 3.56 0 0 1 3.56-3.56Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <path d="M6.549 5.013A1.557 1.557 0 1 0 8.106 6.57a1.557 1.557 0 0 0-1.557-1.557Z"
+                                    fill-rule="evenodd"></path>
+                                <path
+                                    d="m2 18.605 3.901-3.9a.908.908 0 0 1 1.284 0l2.807 2.806a.908.908 0 0 0 1.283 0l5.534-5.534a.908.908 0 0 1 1.283 0l3.905 3.905"
+                                    fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path>
+                                <path
+                                    d="M18.44 2.004A3.56 3.56 0 0 1 22 5.564h0v12.873a3.56 3.56 0 0 1-3.56 3.56H5.568a3.56 3.56 0 0 1-3.56-3.56V5.563a3.56 3.56 0 0 1 3.56-3.56Z"
+                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"></path>
                             </svg>
                         </div>
                         <div class="input-action-icon">
-                            <svg aria-label="Escolher um GIF ou uma figurinha" class="input-icon-img" fill="currentColor" height="22" role="img" viewBox="0 0 24 24" width="22">
+                            <svg aria-label="Escolher um GIF ou uma figurinha" class="input-icon-img"
+                                fill="currentColor" height="22" role="img" viewBox="0 0 24 24" width="22">
                                 <title>Escolher um GIF ou uma figurinha</title>
-                                <path d="M13.11 22H7.416A5.417 5.417 0 0 1 2 16.583V7.417A5.417 5.417 0 0 1 7.417 2h9.166A5.417 5.417 0 0 1 22 7.417v5.836a2.083 2.083 0 0 1-.626 1.488l-6.808 6.664A2.083 2.083 0 0 1 13.11 22Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <path
+                                    d="M13.11 22H7.416A5.417 5.417 0 0 1 2 16.583V7.417A5.417 5.417 0 0 1 7.417 2h9.166A5.417 5.417 0 0 1 22 7.417v5.836a2.083 2.083 0 0 1-.626 1.488l-6.808 6.664A2.083 2.083 0 0 1 13.11 22Z"
+                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"></path>
                                 <circle cx="8.238" cy="9.943" r="1.335"></circle>
                                 <circle cx="15.762" cy="9.943" r="1.335"></circle>
-                                <path d="M15.174 15.23a4.887 4.887 0 0 1-6.937-.301" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                                <path d="M22 10.833v1.629a1.25 1.25 0 0 1-1.25 1.25h-1.79a5.417 5.417 0 0 0-5.417 5.417v1.62a1.25 1.25 0 0 1-1.25 1.25H9.897" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <path d="M15.174 15.23a4.887 4.887 0 0 1-6.937-.301" fill="none" stroke="currentColor"
+                                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                <path
+                                    d="M22 10.833v1.629a1.25 1.25 0 0 1-1.25 1.25h-1.79a5.417 5.417 0 0 0-5.417 5.417v1.62a1.25 1.25 0 0 1-1.25 1.25H9.897"
+                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"></path>
                             </svg>
                         </div>
                         <div class="input-action-icon">
-                            <svg aria-label="Curtir" class="input-icon-img" fill="currentColor" height="22" role="img" viewBox="0 0 24 24" width="22">
+                            <svg aria-label="Curtir" class="input-icon-img" fill="currentColor" height="22" role="img"
+                                viewBox="0 0 24 24" width="22">
                                 <title>Curtir</title>
-                                <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path>
+                                <path
+                                    d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z">
+                                </path>
                             </svg>
                         </div>
                         <div class="input-action-icon input-send-icon u-hidden" id="inputSendIcon">
-                            <img src="../assets/images/screenshots/enviar-mensagen.png" alt="Enviar" class="input-icon-img input-send-icon-svg">
+                            <img src="../assets/images/screenshots/enviar-mensagen.png" alt="Enviar"
+                                class="input-icon-img input-send-icon-svg">
                         </div>
                     </div>
                 </div>
@@ -433,12 +523,53 @@
 
     <!-- Menu de contexto -->
     <div class="context-menu" id="contextMenu">
-        <div class="context-item"><svg aria-label="Responder" fill="currentColor" height="18" role="img" viewBox="0 0 24 24" width="18"><title>Responder</title><path d="M14 8.999H4.413l5.294-5.292a1 1 0 1 0-1.414-1.414l-7 6.998c-.014.014-.019.033-.032.048A.933.933 0 0 0 1 9.998V10c0 .027.013.05.015.076a.907.907 0 0 0 .282.634l6.996 6.998a1 1 0 0 0 1.414-1.414L4.415 11H14a7.008 7.008 0 0 1 7 7v3.006a1 1 0 0 0 2 0V18a9.01 9.01 0 0 0-9-9Z"></path></svg> Responder</div>
-        <div class="context-item"><svg aria-label="Mensagens" fill="currentColor" height="18" role="img" viewBox="0 0 24 24" width="18"><title>Mensagens</title><path d="M13.973 20.046 21.77 6.928C22.8 5.195 21.55 3 19.535 3H4.466C2.138 3 .984 5.825 2.646 7.456l4.842 4.752 1.723 7.121c.548 2.266 3.571 2.721 4.762.717Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="7.488" x2="15.515" y1="12.208" y2="7.641"></line></svg> Encaminhar</div>
-        <div class="context-item" id="contextItemCopiar"><svg aria-label="Copiar" fill="currentColor" height="18" role="img" viewBox="0 0 24 24" width="18"><title>Copiar</title><path d="m20.12 4.707-2.826-2.828A3.026 3.026 0 0 0 15.17 1h-5.167A3.007 3.007 0 0 0 7 4.004V5h-.996A3.007 3.007 0 0 0 3 8.004v11.992A3.007 3.007 0 0 0 6.004 23h7.992A3.007 3.007 0 0 0 17 19.996V19h.996A3.007 3.007 0 0 0 21 15.996V6.83a2.98 2.98 0 0 0-.88-2.123ZM18.586 6 16 6.001V3.414L18.586 6ZM15 19.996C15 20.55 14.55 21 13.996 21H6.004C5.45 21 5 20.55 5 19.996V8.004C5 7.45 5.45 7 6.004 7H7v8.996A3.007 3.007 0 0 0 10.004 19H15v.996ZM17.996 17h-7.992C9.45 17 9 16.55 9 15.996V4.004C9 3.45 9.45 3 10.004 3H14v3.001A2 2 0 0 0 15.999 8H19v7.996C19 16.55 18.55 17 17.996 17Z"></path></svg> Copiar</div>
-        <div class="context-item" id="contextItemBaixar"><svg aria-label="Baixar" fill="currentColor" height="18" role="img" viewBox="0 0 24 24" width="18"><title>Baixar</title><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" x1="11.914" x2="11.914" y1="15.195" y2="2"></line><polyline fill="none" points="16.013 11.095 11.914 15.195 7.814 11.095" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" x1="3.277" x2="20.55" y1="22" y2="22"></line></svg> Baixar</div>
-        <div class="context-item"><svg aria-label="Excluir" fill="currentColor" height="18" role="img" viewBox="0 0 24 24" width="18"><title>Excluir</title><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Apagar para ti</div>
-        <div class="context-item danger" id="contextItemDenunciar"><svg aria-label="Denunciar" fill="currentColor" height="18" role="img" viewBox="0 0 24 24" width="18" class="denunciar-icon"><title>Denunciar</title><path d="M18.001 1h-12a5.006 5.006 0 0 0-5 5v9.005a5.006 5.006 0 0 0 5 5h2.514l2.789 2.712a1 1 0 0 0 1.394 0l2.787-2.712h2.516a5.006 5.006 0 0 0 5-5V6a5.006 5.006 0 0 0-5-5Zm3 14.005a3.003 3.003 0 0 1-3 3h-2.936a1 1 0 0 0-.79.387l-2.274 2.212-2.276-2.212a1 1 0 0 0-.79-.387H6a3.003 3.003 0 0 1-3-3V6a3.003 3.003 0 0 1 3-3h12a3.003 3.003 0 0 1 3 3Zm-9-1.66a1.229 1.229 0 1 0 1.228 1.228A1.23 1.23 0 0 0 12 13.344Zm0-8.117a1.274 1.274 0 0 0-.933.396 1.108 1.108 0 0 0-.3.838l.347 4.861a.892.892 0 0 0 1.77 0l.348-4.86a1.106 1.106 0 0 0-.3-.838A1.272 1.272 0 0 0 12 5.228Z"></path></svg> <span class="denunciar-text">Denunciar</span></div>
+        <div class="context-item"><svg aria-label="Responder" fill="currentColor" height="18" role="img"
+                viewBox="0 0 24 24" width="18">
+                <title>Responder</title>
+                <path
+                    d="M14 8.999H4.413l5.294-5.292a1 1 0 1 0-1.414-1.414l-7 6.998c-.014.014-.019.033-.032.048A.933.933 0 0 0 1 9.998V10c0 .027.013.05.015.076a.907.907 0 0 0 .282.634l6.996 6.998a1 1 0 0 0 1.414-1.414L4.415 11H14a7.008 7.008 0 0 1 7 7v3.006a1 1 0 0 0 2 0V18a9.01 9.01 0 0 0-9-9Z">
+                </path>
+            </svg> Responder</div>
+        <div class="context-item"><svg aria-label="Mensagens" fill="currentColor" height="18" role="img"
+                viewBox="0 0 24 24" width="18">
+                <title>Mensagens</title>
+                <path
+                    d="M13.973 20.046 21.77 6.928C22.8 5.195 21.55 3 19.535 3H4.466C2.138 3 .984 5.825 2.646 7.456l4.842 4.752 1.723 7.121c.548 2.266 3.571 2.721 4.762.717Z"
+                    fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path>
+                <line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    x1="7.488" x2="15.515" y1="12.208" y2="7.641"></line>
+            </svg> Encaminhar</div>
+        <div class="context-item" id="contextItemCopiar"><svg aria-label="Copiar" fill="currentColor" height="18"
+                role="img" viewBox="0 0 24 24" width="18">
+                <title>Copiar</title>
+                <path
+                    d="m20.12 4.707-2.826-2.828A3.026 3.026 0 0 0 15.17 1h-5.167A3.007 3.007 0 0 0 7 4.004V5h-.996A3.007 3.007 0 0 0 3 8.004v11.992A3.007 3.007 0 0 0 6.004 23h7.992A3.007 3.007 0 0 0 17 19.996V19h.996A3.007 3.007 0 0 0 21 15.996V6.83a2.98 2.98 0 0 0-.88-2.123ZM18.586 6 16 6.001V3.414L18.586 6ZM15 19.996C15 20.55 14.55 21 13.996 21H6.004C5.45 21 5 20.55 5 19.996V8.004C5 7.45 5.45 7 6.004 7H7v8.996A3.007 3.007 0 0 0 10.004 19H15v.996ZM17.996 17h-7.992C9.45 17 9 16.55 9 15.996V4.004C9 3.45 9.45 3 10.004 3H14v3.001A2 2 0 0 0 15.999 8H19v7.996C19 16.55 18.55 17 17.996 17Z">
+                </path>
+            </svg> Copiar</div>
+        <div class="context-item" id="contextItemBaixar"><svg aria-label="Baixar" fill="currentColor" height="18"
+                role="img" viewBox="0 0 24 24" width="18">
+                <title>Baixar</title>
+                <line fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"
+                    x1="11.914" x2="11.914" y1="15.195" y2="2"></line>
+                <polyline fill="none" points="16.013 11.095 11.914 15.195 7.814 11.095" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline>
+                <line fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"
+                    x1="3.277" x2="20.55" y1="22" y2="22"></line>
+            </svg> Baixar</div>
+        <div class="context-item"><svg aria-label="Excluir" fill="currentColor" height="18" role="img"
+                viewBox="0 0 24 24" width="18">
+                <title>Excluir</title>
+                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"
+                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                </path>
+            </svg> Apagar para ti</div>
+        <div class="context-item danger" id="contextItemDenunciar"><svg aria-label="Denunciar" fill="currentColor"
+                height="18" role="img" viewBox="0 0 24 24" width="18" class="denunciar-icon">
+                <title>Denunciar</title>
+                <path
+                    d="M18.001 1h-12a5.006 5.006 0 0 0-5 5v9.005a5.006 5.006 0 0 0 5 5h2.514l2.789 2.712a1 1 0 0 0 1.394 0l2.787-2.712h2.516a5.006 5.006 0 0 0 5-5V6a5.006 5.006 0 0 0-5-5Zm3 14.005a3.003 3.003 0 0 1-3 3h-2.936a1 1 0 0 0-.79.387l-2.274 2.212-2.276-2.212a1 1 0 0 0-.79-.387H6a3.003 3.003 0 0 1-3-3V6a3.003 3.003 0 0 1 3-3h12a3.003 3.003 0 0 1 3 3Zm-9-1.66a1.229 1.229 0 1 0 1.228 1.228A1.23 1.23 0 0 0 12 13.344Zm0-8.117a1.274 1.274 0 0 0-.933.396 1.108 1.108 0 0 0-.3.838l.347 4.861a.892.892 0 0 0 1.77 0l.348-4.86a1.106 1.106 0 0 0-.3-.838A1.272 1.272 0 0 0 12 5.228Z">
+                </path>
+            </svg> <span class="denunciar-text">Denunciar</span></div>
     </div>
 
     <!-- Reações rápidas -->
@@ -457,7 +588,8 @@
     <!-- Modal tela cheia para conteúdo sensível -->
     <!-- Modal para Story Encaminhado -->
     <div class="story-fullscreen-modal" id="storyFullscreenModal">
-        <img class="story-fullscreen-image" id="storyFullscreenImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="Story">
+        <img class="story-fullscreen-image" id="storyFullscreenImage"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="Story">
     </div>
 
     <!-- Pop-up vermelho para opções bloqueadas -->
@@ -471,9 +603,10 @@
         <div class="audio-vip-popup-content">
             <div class="audio-vip-popup-label">Seja membro VIP para liberar o volume</div>
             <div class="audio-vip-popup-icon-container">
-                <svg class="audio-vip-popup-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 5L6 9H2v6h4l5 4V5z" fill="#000000"/>
-                    <line x1="19" y1="5" x2="5" y2="19" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+                <svg class="audio-vip-popup-icon" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z" fill="#000000" />
+                    <line x1="19" y1="5" x2="5" y2="19" stroke="#000000" stroke-width="1.5" stroke-linecap="round" />
                 </svg>
             </div>
             <div class="audio-vip-popup-bar">
@@ -500,7 +633,8 @@
     <div class="video-fullscreen-modal" id="videoFullscreenModal">
         <button type="button" class="video-fullscreen-back" id="videoFullscreenBack" aria-label="Voltar">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18L9 12L15 6" stroke="#F9F9F9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M15 18L9 12L15 6" stroke="#F9F9F9" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
             </svg>
         </button>
         <div class="video-fullscreen-content" id="videoFullscreenContent">
@@ -508,14 +642,17 @@
                 <i class="fas fa-eye-slash"></i>
             </div>
             <p class="video-fullscreen-text">Conteúdo sensível</p>
-            <p class="video-fullscreen-subtext">Esta imagem pode apresentar conteúdo de nudez e atividade sexual explícita</p>
+            <p class="video-fullscreen-subtext">Esta imagem pode apresentar conteúdo de nudez e atividade sexual
+                explícita</p>
         </div>
         <div class="video-fullscreen-content-purchase u-hidden" id="videoFullscreenContentPurchase">
             <div class="video-fullscreen-icon">
-                <svg class="warning-icon" width="27" height="27" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L1 21H23L12 2Z" stroke="#F9F9F9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <line x1="12" y1="9" x2="12" y2="13" stroke="#F9F9F9" stroke-width="2.5" stroke-linecap="round"/>
-                    <circle cx="12" cy="16" r="1.5" fill="#F9F9F9"/>
+                <svg class="warning-icon" width="27" height="27" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L1 21H23L12 2Z" stroke="#F9F9F9" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <line x1="12" y1="9" x2="12" y2="13" stroke="#F9F9F9" stroke-width="2.5" stroke-linecap="round" />
+                    <circle cx="12" cy="16" r="1.5" fill="#F9F9F9" />
                 </svg>
             </div>
             <p class="video-fullscreen-text">Conteúdo bloqueado</p>
@@ -543,7 +680,7 @@
         }
 
         // Atualizar foto e nome do utilizador quando entrar na página
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', function () {
             // Pegar dados do sessionStorage
             const userName = sessionStorage.getItem('chat-1-user-name');
             const userPhoto = sessionStorage.getItem('chat-1-user-photo');
@@ -558,17 +695,17 @@
             const chatUserAvatar = document.getElementById('chatUserAvatar');
             if (chatUserAvatar && userPhoto) {
                 chatUserAvatar.className = 'chat-avatar-img';
-                
+
                 // Carregar a imagem (o blur é aplicado no container via CSS)
                 chatUserAvatar.src = userPhoto;
-                
+
                 // Garantir que a classe seja mantida quando a imagem carregar
-                chatUserAvatar.onload = function() {
+                chatUserAvatar.onload = function () {
                     this.className = 'chat-avatar-img';
                 };
-                
+
                 // Garantir classe mesmo se a imagem já estiver em cache
-                chatUserAvatar.onerror = function() {
+                chatUserAvatar.onerror = function () {
                     this.className = 'chat-avatar-img';
                 };
             }
@@ -588,7 +725,7 @@
                 // Buscar o nome do perfil espiado do localStorage
                 const profileData = localStorage.getItem('instagram_profile');
                 let firstName = '';
-                
+
                 if (profileData) {
                     try {
                         const profile = JSON.parse(profileData);
@@ -603,18 +740,18 @@
                         console.warn('Erro ao parsear profile data:', e);
                     }
                 }
-                
+
                 // Se não encontrou o nome, tentar buscar do username salvo
                 if (!firstName) {
                     const espiadoUsername = localStorage.getItem('espiado_username') || localStorage.getItem('username') || '';
                     firstName = espiadoUsername.split(' ')[0] || espiadoUsername || 'delícia';
                 }
-                
+
                 // Garantir primeira letra maiúscula
                 if (firstName) {
                     firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
                 }
-                
+
                 // Atualizar o conteúdo da mensagem
                 lastMessageContent.textContent = `${firstName} adivinha o que esqueceste aqui? ahahah`;
             }
@@ -696,7 +833,7 @@
             const chat1Read = localStorage.getItem('chat-1-read');
             const unreadDivider = document.querySelector('.message-unread-divider');
             const chatMessages = document.getElementById('chatMessages');
-            
+
             // Remover divisor se já foi lido
             if (chat1Read === 'true' && unreadDivider) {
                 unreadDivider.remove();
@@ -711,15 +848,15 @@
         });
 
         // Marcar como lido quando sair da página (qualquer forma)
-        window.addEventListener('beforeunload', function() {
+        window.addEventListener('beforeunload', function () {
             localStorage.setItem('chat-1-read', 'true');
         });
 
         // Configurar botão de voltar
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const backButton = document.getElementById('backButton');
             if (backButton) {
-                backButton.addEventListener('click', function(e) {
+                backButton.addEventListener('click', function (e) {
                     e.preventDefault();
                     // Marcar como lido quando voltar para direct.html
                     localStorage.setItem('chat-1-read', 'true');
@@ -733,14 +870,14 @@
                     }, 50);
                 });
             }
-            
+
             // Garantir que as barras de waveform sejam geradas após o script.js carregar
-            setTimeout(function() {
+            setTimeout(function () {
                 if (typeof randomizeAudioBars === 'function') {
                     randomizeAudioBars();
                 } else {
                     // Se a função ainda não estiver disponível, tentar novamente
-                    setTimeout(function() {
+                    setTimeout(function () {
                         if (typeof randomizeAudioBars === 'function') {
                             randomizeAudioBars();
                         }
@@ -759,7 +896,7 @@
                 const text = element.textContent || element.innerText || '';
                 let html = element.innerHTML || '';
                 let changed = false;
-                
+
                 // Limpar padrões como "Ibiporã,Cambé,Jataizinho,Rolândia" -> "Ibiporã"
                 // Limpar qualquer sequência de cidades separadas por vírgula e manter apenas a primeira
                 const cleaned1 = html.replace(/([A-ZÁÉÍÓÚÂÊÔÇ][a-záéíóúâêôçãõ]+),([A-ZÁÉÍÓÚÂÊÔÇ][a-záéíóúâêôçãõ]+(?:,[A-ZÁÉÍÓÚÂÊÔÇ][a-záéíóúâêôçãõ]+)*)/g, (match, firstCity) => {
@@ -767,46 +904,46 @@
                     return firstCity.trim();
                 });
                 html = cleaned1;
-                
+
                 // Limpar texto que tenha múltiplas cidades separadas por vírgula após "em"
                 const cleaned2 = html.replace(/em\s+([^,<>\s]+),([^,<>\s]+(?:,[^,<>\s]+)+)/g, (match, firstCity) => {
                     changed = true;
                     return `em ${firstCity.trim()}`;
                 });
                 html = cleaned2;
-                
+
                 if (changed && html !== element.innerHTML) {
                     element.innerHTML = html;
                 }
             });
         }
-        
+
         // Executar após o script.js carregar e após replaceLocationPlaceholders executar
         function runCleanup() {
             // Aguardar replaceLocationPlaceholders executar
-            setTimeout(function() {
+            setTimeout(function () {
                 cleanMultipleCities();
                 // Executar novamente após um tempo para pegar elementos dinâmicos
                 setTimeout(cleanMultipleCities, 500);
             }, 2000);
         }
-        
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', runCleanup);
         } else {
             runCleanup();
         }
-        
+
         // Também executar após replaceLocationPlaceholders (se existir)
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             setTimeout(cleanMultipleCities, 2500);
         });
-        
+
         // Observar mudanças no DOM para limpar novas mensagens
-        const observer = new MutationObserver(function(mutations) {
+        const observer = new MutationObserver(function (mutations) {
             cleanMultipleCities();
         });
-        
+
         const chatMessages = document.getElementById('chatMessages');
         if (chatMessages) {
             observer.observe(chatMessages, {
@@ -814,15 +951,15 @@
                 subtree: true
             });
         }
-        
+
         // Garantir que as barras sejam geradas após o script.js carregar completamente
         function initWaveformBars() {
             if (typeof randomizeAudioBars === 'function') {
                 randomizeAudioBars();
                 // Verificar se as barras foram criadas
-                setTimeout(function() {
+                setTimeout(function () {
                     const waveforms = document.querySelectorAll('.audio-recebido-waveform');
-                    waveforms.forEach(function(waveform) {
+                    waveforms.forEach(function (waveform) {
                         const bars = waveform.querySelectorAll('.audio-recebido-waveform-bar');
                         if (bars.length === 0) {
                             // Se ainda não tem barras, criar manualmente
@@ -842,7 +979,7 @@
                             }
                         } else {
                             // Garantir que todas as barras tenham cor
-                            bars.forEach(function(bar) {
+                            bars.forEach(function (bar) {
                                 if (!bar.style.backgroundColor || bar.style.backgroundColor === 'transparent') {
                                     bar.style.cssText += 'background-color: #F9F9F9 !important;';
                                 }
@@ -855,25 +992,25 @@
                 setTimeout(initWaveformBars, 200);
             }
         }
-        
+
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(initWaveformBars, 1000);
             });
         } else {
             setTimeout(initWaveformBars, 1000);
         }
-        
+
         // Também tentar quando a página estiver completamente carregada
-        window.addEventListener('load', function() {
-            setTimeout(function() {
+        window.addEventListener('load', function () {
+            setTimeout(function () {
                 if (typeof randomizeAudioBars === 'function') {
                     randomizeAudioBars();
                 }
                 // Verificação final após 2 segundos
-                setTimeout(function() {
+                setTimeout(function () {
                     const waveforms = document.querySelectorAll('.audio-recebido-waveform');
-                    waveforms.forEach(function(waveform) {
+                    waveforms.forEach(function (waveform) {
                         const bars = waveform.querySelectorAll('.audio-recebido-waveform-bar');
                         if (bars.length === 0) {
                             // Criar barras manualmente como fallback
@@ -897,7 +1034,11 @@
             }, 500);
         });
     </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"a498776392544666ab857bf3c5f34185","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+    <script defer
+        src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+        integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
+        data-cf-beacon='{"version":"2024.11.0","token":"a498776392544666ab857bf3c5f34185","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
+        crossorigin="anonymous"></script>
 </body>
-</html>
 
+</html>
