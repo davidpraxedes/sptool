@@ -77,7 +77,8 @@
     <div class="top-announcement">
         <div class="announcement-content">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
             <span class="announcement-text"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;">
@@ -91,7 +92,8 @@
                     <path d="m22 13-.82-.33c-.86-.34-1.82.2-2.08 1.15v0c-.27.98-.15 1.96.27 2.96l.66 1.6" />
                     <path d="m7 15 .72-.09c.87-.1 1.7.58 1.81 1.45v0c.12.96.69 1.87 1.57 2.1l1.63.4" />
                     <path d="M6.5 13.5 9 16m2.5-3 1.5-1.5" />
-                </svg> Promoção exclusiva: <strong>90% OFF</strong> apenas hoje!</span>
+                </svg> Promoção exclusiva: <span style="color: #4ade80; font-weight: 800;">90% OFF</span> apenas
+                hoje!</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -119,7 +121,7 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            Oferta por tempo limitado! <strong style="margin-left: 5px;" id="scarcityTimer">04:59</strong>
+            Oferta por tempo limitado! <span class="modern-timer" id="scarcityTimer">04:59</span>
         </div>
 
         <!-- Resumo Limpo -->
@@ -368,8 +370,7 @@
 
     <style>
         .top-announcement {
-            background-color: #8B5CF6 !important;
-            /* Harmonized Purple (Violet-500) */
+            background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%) !important;
             color: #ffffff !important;
         }
 
@@ -388,8 +389,8 @@
             cursor: pointer;
             transition: all 0.2s ease;
 
-            /* Reduced opacity considerably (0.85) */
-            background: linear-gradient(135deg, rgba(76, 29, 149, 0.9) 0%, rgba(91, 33, 182, 0.85) 100%);
+            /* Reduced opacity considerably (0.5) */
+            background: linear-gradient(135deg, rgba(76, 29, 149, 0.5) 0%, rgba(91, 33, 182, 0.45) 100%);
             border: 1px solid rgba(139, 92, 246, 0.4);
 
             align-items: center;
@@ -534,6 +535,36 @@
             100% {
                 transform: scale(1);
                 opacity: 1;
+            }
+        }
+
+        .modern-timer {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+            margin-left: 8px;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .btn-futuristic {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 29, 149, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 29, 149, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 29, 149, 0);
             }
         }
     </style>
