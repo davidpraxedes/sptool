@@ -238,117 +238,267 @@
                 </div>
             </div>
 
-            <!-- Botão de Finalizar -->
-            <button type="submit" class="btn-primary btn-futuristic" id="submitBtn">
-                <span>Finalizar Compra</span>
-                <span class="btn-amount">12,90€</span>
-            </button>
-        </form>
+    </div>
+    </div>
 
-        <!-- Status de Pagamento (oculto inicialmente) -->
-        <div class="payment-status" id="paymentStatus">
-            <div class="status-icon" id="statusIconContainer">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    id="statusIcon">
-                    <circle cx="12" cy="12" r="10" />
-                </svg>
+    <!-- ORDER BUMPS -->
+    <div class="checkout-card bumps-section">
+        <!-- Bump 1: Recuperação -->
+        <label class="bump-item" for="bump-recovery">
+            <div class="bump-checkbox-wrapper">
+                <input type="checkbox" id="bump-recovery" class="bump-checkbox" data-price="4.90">
+                <div class="bump-check-visual">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
             </div>
-            <h2 class="status-title" id="statusTitle">A processar...</h2>
-            <p class="status-message" id="statusMessage">Aguarda um momento...</p>
+            <div class="bump-content">
+                <div class="bump-header">
+                    <span class="bump-title">Pack Recuperação Total</span>
+                    <span class="bump-price">+4,90€</span>
+                </div>
+                <p class="bump-description">Revela mensagens e fotos que foram <strong>apagadas</strong> nos últimos 12
+                    meses. Veja o que estão escondendo de ti.</p>
+            </div>
+        </label>
+
+        <!-- Bump 2: Fura-Fila -->
+        <label class="bump-item" for="bump-priority">
+            <div class="bump-checkbox-wrapper">
+                <input type="checkbox" id="bump-priority" class="bump-checkbox" data-price="2.90">
+                <div class="bump-check-visual">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="bump-content">
+                <div class="bump-header">
+                    <span class="bump-title">Fura-Fila Prioritário</span>
+                    <span class="bump-price">+2,90€</span>
+                </div>
+                <p class="bump-description">Sua espionagem processada em <strong>menos de 1 minuto</strong>. Salte na
+                    frente de 84 pessoas na fila de espera.</p>
+            </div>
+        </label>
+    </div>
+
+    <style>
+        .bump-item {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            align-items: flex-start;
+        }
+
+        .bump-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .bump-item.active {
+            background: rgba(16, 185, 129, 0.05);
+            border: 2px solid #10B981;
+        }
+
+        .bump-checkbox-wrapper {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .bump-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .bump-check-visual {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .bump-checkbox:checked+.bump-check-visual {
+            background: #10B981;
+            border-color: #10B981;
+        }
+
+        .bump-check-visual svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s;
+        }
+
+        .bump-checkbox:checked+.bump-check-visual svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .bump-content {
+            flex: 1;
+        }
+
+        .bump-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .bump-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 15px;
+        }
+
+        .bump-price {
+            font-weight: 800;
+            color: #EF4444;
+            /* Vermelho para destaque */
+            font-size: 14px;
+        }
+
+        .bump-description {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .bump-description strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+    </style>
+
+    <!-- Botão de Finalizar -->
+    <button type="submit" class="btn-primary btn-futuristic" id="submitBtn">
+        <span>Finalizar Compra</span>
+        <span class="btn-amount">12,90€</span>
+    </button>
+    </form>
+
+    <!-- Status de Pagamento (oculto inicialmente) -->
+    <div class="payment-status" id="paymentStatus">
+        <div class="status-icon" id="statusIconContainer">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                id="statusIcon">
+                <circle cx="12" cy="12" r="10" />
+            </svg>
         </div>
+        <h2 class="status-title" id="statusTitle">A processar...</h2>
+        <p class="status-message" id="statusMessage">Aguarda um momento...</p>
+    </div>
 
-        <!-- Avaliações de Clientes (Prova Social) -->
-        <!-- Avaliações de Clientes (Prova Social) -->
-        <div class="reviews-section">
-            <h3 class="reviews-title">O que dizem os nossos clientes</h3>
+    <!-- Avaliações de Clientes (Prova Social) -->
+    <!-- Avaliações de Clientes (Prova Social) -->
+    <div class="reviews-section">
+        <h3 class="reviews-title">O que dizem os nossos clientes</h3>
 
-            <div class="reviews-grid">
-                <!-- Review 1 -->
-                <div class="review-card">
-                    <div class="review-header">
-                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Mariana"
-                            class="reviewer-photo">
-                        <div class="reviewer-info">
-                            <span class="reviewer-name">Mariana Costa</span>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <span class="review-date">Há 2 min</span>
+        <div class="reviews-grid">
+            <!-- Review 1 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Mariana" class="reviewer-photo">
+                    <div class="reviewer-info">
+                        <span class="reviewer-name">Mariana Costa</span>
+                        <div class="review-stars">★★★★★</div>
                     </div>
-                    <p class="review-text">"Fiquei impressionada com a rapidez! Em menos de 2 minutos já tinha acesso a
-                        tudo. Serviço 5 estrelas, recomendo vivamente!"</p>
+                    <span class="review-date">Há 2 min</span>
                 </div>
+                <p class="review-text">"Fiquei impressionada com a rapidez! Em menos de 2 minutos já tinha acesso a
+                    tudo. Serviço 5 estrelas, recomendo vivamente!"</p>
+            </div>
 
-                <!-- Review 2 -->
-                <div class="review-card">
-                    <div class="review-header">
-                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="João" class="reviewer-photo">
-                        <div class="reviewer-info">
-                            <span class="reviewer-name">João Santos</span>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <span class="review-date">Há 15 min</span>
+            <!-- Review 2 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="João" class="reviewer-photo">
+                    <div class="reviewer-info">
+                        <span class="reviewer-name">João Santos</span>
+                        <div class="review-stars">★★★★★</div>
                     </div>
-                    <p class="review-text">"O pagamento por Multibanco foi super seguro e fácil. Recomendo a quem
-                        precisa de discrição total."</p>
+                    <span class="review-date">Há 15 min</span>
                 </div>
+                <p class="review-text">"O pagamento por Multibanco foi super seguro e fácil. Recomendo a quem
+                    precisa de discrição total."</p>
+            </div>
 
-                <!-- Review 3 -->
-                <div class="review-card">
-                    <div class="review-header">
-                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sofia" class="reviewer-photo">
-                        <div class="reviewer-info">
-                            <span class="reviewer-name">Sofia Martins</span>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <span class="review-date">Há 45 min</span>
+            <!-- Review 3 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sofia" class="reviewer-photo">
+                    <div class="reviewer-info">
+                        <span class="reviewer-name">Sofia Martins</span>
+                        <div class="review-stars">★★★★★</div>
                     </div>
-                    <p class="review-text">"Estava com receio, mas funciona mesmo! O suporte ajudou-me imenso a
-                        configurar tudo direitinho. Top!"</p>
+                    <span class="review-date">Há 45 min</span>
                 </div>
+                <p class="review-text">"Estava com receio, mas funciona mesmo! O suporte ajudou-me imenso a
+                    configurar tudo direitinho. Top!"</p>
+            </div>
 
-                <!-- Review 4 -->
-                <div class="review-card">
-                    <div class="review-header">
-                        <img src="https://randomuser.me/api/portraits/men/86.jpg" alt="Pedro" class="reviewer-photo">
-                        <div class="reviewer-info">
-                            <span class="reviewer-name">Pedro Ferreira</span>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <span class="review-date">Há 1h</span>
+            <!-- Review 4 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <img src="https://randomuser.me/api/portraits/men/86.jpg" alt="Pedro" class="reviewer-photo">
+                    <div class="reviewer-info">
+                        <span class="reviewer-name">Pedro Ferreira</span>
+                        <div class="review-stars">★★★★★</div>
                     </div>
-                    <p class="review-text">"Excelente ferramenta. Tudo anónimo e sem deixar rasto, tal como prometido.
-                        Muito satisfeito com o serviço."</p>
+                    <span class="review-date">Há 1h</span>
                 </div>
+                <p class="review-text">"Excelente ferramenta. Tudo anónimo e sem deixar rasto, tal como prometido.
+                    Muito satisfeito com o serviço."</p>
+            </div>
 
-                <!-- Review 5 -->
-                <div class="review-card">
-                    <div class="review-header">
-                        <img src="https://randomuser.me/api/portraits/women/90.jpg" alt="Beatriz"
-                            class="reviewer-photo">
-                        <div class="reviewer-info">
-                            <span class="reviewer-name">Beatriz Lima</span>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <span class="review-date">Há 2h</span>
+            <!-- Review 5 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <img src="https://randomuser.me/api/portraits/women/90.jpg" alt="Beatriz" class="reviewer-photo">
+                    <div class="reviewer-info">
+                        <span class="reviewer-name">Beatriz Lima</span>
+                        <div class="review-stars">★★★★★</div>
                     </div>
-                    <p class="review-text">"A melhor plataforma do género em Portugal. Simples, prática e muito eficaz.
-                        Adorei a experiência!"</p>
+                    <span class="review-date">Há 2h</span>
                 </div>
+                <p class="review-text">"A melhor plataforma do género em Portugal. Simples, prática e muito eficaz.
+                    Adorei a experiência!"</p>
             </div>
         </div>
+    </div>
 
 
-        <!-- Copyright Footer Profissional -->
-        <footer class="checkout-footer">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <img src="../logocheckout.png" alt="InstaSpy" class="footer-logo">
-                    <p class="footer-tagline">Espionagem profissional do Instagram</p>
-                </div>
-                <div class="footer-divider"></div>
-                <p class="footer-copyright">© 2025 InstaSpy</p>
+    <!-- Copyright Footer Profissional -->
+    <footer class="checkout-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <img src="../logocheckout.png" alt="InstaSpy" class="footer-logo">
+                <p class="footer-tagline">Espionagem profissional do Instagram</p>
             </div>
-        </footer>
+            <div class="footer-divider"></div>
+            <p class="footer-copyright">© 2025 InstaSpy</p>
+        </div>
+    </footer>
     </div>
 </body>
 <!-- Loading Premium Overlay -->
