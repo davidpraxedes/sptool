@@ -420,6 +420,23 @@ def update_order_status():
                 order['status'] = new_status
                 updated = True
                 print(f"✅ Pedido #{order.get('id')} atualizado para {new_status}")
+                
+                # 🔔 DISPARAR PUSHCUT SE PAGO
+                if new_status == 'PAID':
+                    try:
+                        amount = order.get('amount', 12.90)
+                        method = order.get('method', 'MBWAY')
+                        pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
+                        pushcut_payload = {
+                            "title": "💸 Venda Aprovada!",
+                            "text": f"Pagamento confirmado {method}\nValor: {amount}€\nID: {tx_id}",
+                            "isTimeSensitive": True
+                        }
+                        requests.post(pushcut_url, json=pushcut_payload, timeout=4)
+                        print(f"📲 Pushcut 'Venda Aprovada' enviado")
+                    except Exception as e:
+                        print(f"⚠️ Erro ao enviar Pushcut de Venda: {e}")
+                
                 break
                 
         if updated:
