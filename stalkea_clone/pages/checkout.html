@@ -20,7 +20,8 @@
             border-radius: 12px !important;
             font-size: 16px !important;
             font-weight: 800 !important;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+            /* REMOVED !important from box-shadow to allow animation override */
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             text-transform: uppercase !important;
             letter-spacing: 1px !important;
             position: relative !important;
@@ -32,6 +33,7 @@
             cursor: pointer !important;
             transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1) !important;
             margin-top: 24px !important;
+            animation: pulse-glow 2s infinite !important;
         }
 
         .btn-futuristic::after {
@@ -50,7 +52,7 @@
 
         .btn-futuristic:hover {
             transform: translateY(-3px) !important;
-            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
             background: linear-gradient(135deg, #12D093 0%, #06A374 100%) !important;
         }
 
@@ -61,7 +63,7 @@
 
         .btn-futuristic:active {
             transform: translateY(1px) !important;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
     </style>
 </head>
@@ -74,26 +76,33 @@
     </div>
 
     <!-- Top Bar Announcement -->
+    <!-- Top Bar Announcement (Marquee) -->
     <div class="top-announcement">
-        <div class="announcement-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span class="announcement-text"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;">
-                    <path d="M5.8 11.3 2 22l10.7-3.79" />
-                    <path d="M4 3h.01" />
-                    <path d="M22 8h.01" />
-                    <path d="M15 2h.01" />
-                    <path d="M22 20h.01" />
-                    <path
-                        d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" />
-                    <path d="m22 13-.82-.33c-.86-.34-1.82.2-2.08 1.15v0c-.27.98-.15 1.96.27 2.96l.66 1.6" />
-                    <path d="m7 15 .72-.09c.87-.1 1.7.58 1.81 1.45v0c.12.96.69 1.87 1.57 2.1l1.63.4" />
-                    <path d="M6.5 13.5 9 16m2.5-3 1.5-1.5" />
-                </svg> Promoção exclusiva: <span style="color: #4ade80; font-weight: 800;">90% OFF</span> apenas
-                hoje!</span>
+        <div class="marquee-wrapper">
+            <div class="marquee-content">
+                <span>Promoção exclusiva: <span style="color: #4ade80; font-weight: 800;">90% OFF</span> apenas
+                    hoje!</span>
+                <span class="separator">•</span>
+                <span>Oferta por tempo limitado</span>
+                <span class="separator">•</span>
+                <span>Desbloqueie tudo agora</span>
+                <span class="separator">•</span>
+                <span>Promoção exclusiva: <span style="color: #4ade80; font-weight: 800;">90% OFF</span> apenas
+                    hoje!</span>
+            </div>
+            <div class="marquee-content">
+                <span>Promoção exclusiva: <span style="color: #4ade80; font-weight: 800;">90% OFF</span> apenas
+                    hoje!</span>
+                <span class="separator">•</span>
+                <span>Oferta por tempo limitado</span>
+                <span class="separator">•</span>
+                <span>Desbloqueie tudo agora</span>
+                <span class="separator">•</span>
+                <span>Promoção exclusiva: <span style="color: #4ade80; font-weight: 800;">90% OFF</span> apenas
+                    hoje!</span>
+            </div>
+        </div>
+        <div class="top-clock">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -116,7 +125,7 @@
         </div>
 
         <!-- Ordenar Badge de Escassez -->
-        <div class="scarcity-badge">
+        <div class="scarcity-badge" style="margin-top: 8px; margin-bottom: 8px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -257,7 +266,7 @@
 
     <!-- ORDER BUMPS -->
     <!-- ORDER BUMPS -->
-    <div style="margin: 24px 0 16px 0; padding: 0 16px; text-align: left;">
+    <div style="margin: 8px 0 8px 0; padding: 0 16px; text-align: left;">
         <h3
             style="color: #d97706; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
             <svg class="pulsing-star" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
@@ -265,7 +274,7 @@
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
                 </path>
             </svg>
-            Recomendado para você
+            <span class="shine-text">Recomendado para você</span>
         </h3>
         <p style="font-size: 13px; color: #9ca3af; margin: 0; line-height: 1.4;">Adicione estes extras para ter uma
             espionagem completa.</p>
@@ -372,6 +381,53 @@
         .top-announcement {
             background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%) !important;
             color: #ffffff !important;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            height: 40px;
+        }
+
+        .marquee-wrapper {
+            display: flex;
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+
+        .marquee-content {
+            display: flex;
+            align-items: center;
+            animation: marquee 20s linear infinite;
+        }
+
+        .marquee-content span {
+            padding: 0 10px;
+            font-size: 13px;
+        }
+
+        .separator {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .top-clock {
+            padding-right: 12px;
+            padding-left: 8px;
+            z-index: 2;
+            background: #5b21b6;
+            /* Cover marquee underneath */
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
 
         /* Ensure SVGs in top bar are white */
@@ -389,8 +445,8 @@
             cursor: pointer;
             transition: all 0.2s ease;
 
-            /* Reduced opacity considerably (0.5) */
-            background: linear-gradient(135deg, rgba(76, 29, 149, 0.5) 0%, rgba(91, 33, 182, 0.45) 100%);
+            /* Reduced opacity drastically (0.15) */
+            background: linear-gradient(135deg, rgba(76, 29, 149, 0.15) 0%, rgba(91, 33, 182, 0.1) 100%);
             border: 1px solid rgba(139, 92, 246, 0.4);
 
             align-items: center;
@@ -560,11 +616,27 @@
             }
 
             70% {
-                box-shadow: 0 0 0 10px rgba(76, 29, 149, 0);
+                box-shadow: 0 0 0 20px rgba(76, 29, 149, 0);
             }
 
             100% {
                 box-shadow: 0 0 0 0 rgba(76, 29, 149, 0);
+            }
+        }
+
+        .shine-text {
+            background: linear-gradient(to right, #b45309 0%, #fcd34d 50%, #b45309 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shine 3s linear infinite;
+            font-weight: 800;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
             }
         }
     </style>
