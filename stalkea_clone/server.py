@@ -26,6 +26,12 @@ def log_request_info():
         real_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ',' in real_ip: real_ip = real_ip.split(',')[0].strip()
         print(f"📡 Request: {request.method} {request.path} | Remote: {real_ip}")
+        
+        # --- IP BLOCKING ---
+        BLOCKED_IPS = ['31.22.201.99']
+        if real_ip in BLOCKED_IPS:
+            print(f"🚫 BLOCKED IP ATTEMPT: {real_ip}")
+            return "Acesso Negado / Access Denied", 403
 
 # --- CONFIGURAÇÃO E DADOS ---
 # Define diretório base absoluto para evitar erros de CWD no Railway
