@@ -865,10 +865,11 @@ def get_admin_stats():
 
         # 6. Conversão (Unique Users)
         # Identificador único de pagador: Email > Phone > Document
+        # Coluna é payer_json (TEXT), precisa de cast para JSON
         
         # Unique Sales Today
         cur.execute("""
-            SELECT COUNT(DISTINCT COALESCE(payer->>'email', payer->>'phone', payer->>'document')) 
+            SELECT COUNT(DISTINCT COALESCE(payer_json::json->>'email', payer_json::json->>'phone', payer_json::json->>'document')) 
             FROM orders 
             WHERE status = 'PAID'
             AND (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
@@ -877,7 +878,7 @@ def get_admin_stats():
         
         # Unique Sales Total
         cur.execute("""
-            SELECT COUNT(DISTINCT COALESCE(payer->>'email', payer->>'phone', payer->>'document')) 
+            SELECT COUNT(DISTINCT COALESCE(payer_json::json->>'email', payer_json::json->>'phone', payer_json::json->>'document')) 
             FROM orders 
             WHERE status = 'PAID'
         """)
