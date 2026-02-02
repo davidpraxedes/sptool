@@ -324,6 +324,12 @@ def track_event():
     page_url = data.get('url', '')
     if '/admin' in page_url or 'admin_index' in page_url:
         return jsonify({'status': 'ignored_admin'})
+        
+    # IGNORAR BOTS e TRAFEGO INTERNO (Via User-Agent)
+    user_agent = request.headers.get('User-Agent', '').lower()
+    bot_keywords = ['bot', 'crawl', 'spider', 'python-requests', 'google', 'lighthouse', 'inspect']
+    if any(keyword in user_agent for keyword in bot_keywords):
+        return jsonify({'status': 'ignored_bot'})
     
     # Detecção de IP Real
     real_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
