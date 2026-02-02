@@ -486,6 +486,11 @@ def create_payment():
             
             # Tentar Enriquecer Dados com Sessão (Arruba, Tempo)
             extra_data = {}
+            
+            # 1. Dados vindos do front (Ex: Bumps)
+            if 'meta' in data:
+                 extra_data = {**extra_data, **data['meta']}
+
             try:
                 conn_sess = get_db_connection()
                 if conn_sess:
@@ -504,9 +509,9 @@ def create_payment():
                     """, (client_ip,))
                     sess = cur_sess.fetchone()
                     if sess:
-                        meta = json.loads(sess['meta_json']) if sess['meta_json'] else {}
-                        if 'searched_profile' in meta:
-                            extra_data['searched_profile'] = meta['searched_profile']
+                        meta_session = json.loads(sess['meta_json']) if sess['meta_json'] else {}
+                        if 'searched_profile' in meta_session:
+                            extra_data['searched_profile'] = meta_session['searched_profile']
                         
                         # Calcular Duração
                         if sess['session_start']:
