@@ -826,12 +826,17 @@ def get_admin_stats():
         # Ajuste de timezone: Brasilia (UTC-3)
         # Se servidor for UTC -> NOW() - 3 hours
         
+        
         # 1. Visitas Hoje
         cur.execute("""
             SELECT COUNT(*) FROM daily_visits 
             WHERE visit_date = (NOW() - INTERVAL '3 hours')::date
         """)
         stats['visits_today'] = cur.fetchone()[0]
+        
+        # 1.1 Visitas Total (Total de registros em daily_visits)
+        cur.execute("SELECT COUNT(*) FROM daily_visits")
+        stats['visits_total'] = cur.fetchone()[0]
         
         # 2. Pedidos Hoje (Total Count)
         cur.execute("""
@@ -855,6 +860,39 @@ def get_admin_stats():
         # 5. Faturamento Total (Apenas PAID)
         cur.execute("SELECT COALESCE(SUM(amount), 0) FROM orders WHERE status = 'PAID'")
         stats['revenue_total'] = cur.fetchone()[0]
+
+        # 6. Conversão (Unique Users)
+        # Identificador único de pagador: Email > Phone > Document
+        
+        # Unique Sales Today
+        cur.execute("""
+            SELECT COUNT(DISTINCT COALESCE(payer->>'email', payer->>'phone', payer->>'document')) 
+            FROM orders 
+            WHERE status = 'PAID'
+            AND (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
+        """)
+        unique_sales_today = cur.fetchone()[0]
+        
+        # Unique Sales Total
+        cur.execute("""
+            SELECT COUNT(DISTINCT COALESCE(payer->>'email', payer->>'phone', payer->>'document')) 
+            FROM orders 
+            WHERE status = 'PAID'
+        """)
+        unique_sales_total = cur.fetchone()[0]
+        
+        # Calcular Taxas
+        # Conversão Hoje = (Compradores Únicos Hoje / Visitas Únicas Hoje)
+        if stats['visits_today'] > 0:
+            stats['conversion_today'] = (unique_sales_today / stats['visits_today']) * 100
+        else:
+            stats['conversion_today'] = 0.0
+            
+        # Conversão Total = (Compradores Únicos Total / Visitas Únicas Total)
+        if stats['visits_total'] > 0:
+            stats['conversion_total'] = (unique_sales_total / stats['visits_total']) * 100
+        else:
+            stats['conversion_total'] = 0.0
         
         cur.close()
         conn.close()
