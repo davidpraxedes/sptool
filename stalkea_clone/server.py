@@ -1004,7 +1004,7 @@ if __name__ == '__main__':
         'last_check': None
     }
     
-    @app.route('/api/status', methods=['GET'])
+    @app.route('/api/admin/site-status', methods=['GET'])
     def get_site_status():
         return jsonify(SITE_STATUS)
 

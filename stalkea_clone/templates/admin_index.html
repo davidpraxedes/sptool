@@ -711,7 +711,7 @@
         // Fetch Site Status (Phishing Detector)
         async function fetchSiteStatus() {
             try {
-                const res = await fetch('/api/status');
+                const res = await fetch('/api/admin/site-status');
                 const data = await res.json();
 
                 const statusEl = document.getElementById('siteStatusText');
