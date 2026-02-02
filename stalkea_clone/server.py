@@ -876,11 +876,13 @@ def get_admin_stats():
         """)
         unique_sales_today = cur.fetchone()[0]
         
-        # Unique Sales Total
+        # Unique Sales Total (Apenas considerando o período onde há visitas registradas)
+        # Se contarmos pedidos antigos de quando não havia tracking de visitas, a taxa fica > 100%
         cur.execute("""
             SELECT COUNT(DISTINCT COALESCE(payer_json::json->>'email', payer_json::json->>'phone', payer_json::json->>'document')) 
             FROM orders 
             WHERE status = 'PAID'
+            AND created_at >= (SELECT COALESCE(MIN(visit_date), '2000-01-01'::date) FROM daily_visits)
         """)
         unique_sales_total = cur.fetchone()[0]
         
