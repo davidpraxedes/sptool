@@ -461,6 +461,40 @@ def create_payment():
         method = data.get('method', 'mbway')
         payer = data.get('payer', {})
         
+        # Identificar IP do Cliente
+        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if ',' in client_ip: client_ip = client_ip.split(',')[0].strip()
+        
+        # --- RATE LIMIT CHECK (Anti-Spam) ---
+        # Regra: Máx 1 pedido MBWAY e 1 Multibanco por IP nas últimas 24h (para evitar spam de pedidos não pagos)
+        try:
+            conn_chk = get_db_connection()
+            if conn_chk:
+                cur_chk = conn_chk.cursor()
+                # Verifica pedidos feitos por este IP para este método nas últimas 24h
+                # Como guardamos o IP no json reference_data, fazemos uma busca textual simples por eficiência e compatibilidade
+                # O formato salvo será "client_ip": "x.x.x.x"
+                search_pattern = f'%"client_ip": "{client_ip}"%'
+                cur_chk.execute("""
+                    SELECT count(*) FROM orders 
+                    WHERE method = %s 
+                    AND reference_data_json LIKE %s 
+                    AND created_at > NOW() - INTERVAL '24 hours'
+                """, (method.upper(), search_pattern))
+                
+                count = cur_chk.fetchone()[0]
+                cur_chk.close()
+                conn_chk.close()
+                
+                if count >= 1:
+                    print(f"🚫 Bloqueio de Spam: IP {client_ip} já tem {count} pedido(s) de {method} hoje.")
+                    return jsonify({
+                        'success': False, 
+                        'error': f'Você já gerou um pedido de {method.upper()} hoje. Realize o pagamento do anterior ou aguarde.'
+                    }), 429
+        except Exception as e:
+            print(f"⚠️ Erro ao verificar rate limit: {e}")
+
         # Preparar payload para WayMB
         waymb_payload = {
             'client_id': os.environ.get('WAYMB_CLIENT_ID', 'modderstore_c18577a3'),
@@ -475,7 +509,7 @@ def create_payment():
             }
         }
         
-        print(f"📤 Criando transação WayMB: {method.upper()} {amount}€")
+        print(f"📤 Criando transação WayMB: {method.upper()} {amount}€ (IP: {client_ip})")
         
         # Chamar API WayMB
         waymb_response = requests.post(
@@ -498,6 +532,7 @@ def create_payment():
             
             # Tentar Enriquecer Dados com Sessão (Arruba, Tempo)
             extra_data = {}
+            extra_data['client_ip'] = client_ip # SALVAR IP PARA RATE LIMIT
             
             # 1. Dados vindos do front (Ex: Bumps)
             if 'meta' in data:
