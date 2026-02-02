@@ -89,6 +89,13 @@ def init_db():
                 );
             """)
 
+            # MIGRATION: Ensure session_start exists (ALTER TABLE IF NOT EXISTS approach)
+            try:
+                cur.execute("ALTER TABLE active_sessions ADD COLUMN IF NOT EXISTS session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
+            except Exception as e:
+                print(f"⚠️ Migration warning (session_start): {e}")
+                conn.rollback() # Rollback em caso de erro para não travar o commit principal
+
             conn.commit()
             print("✅ Tabelas 'orders', 'active_sessions' e 'daily_visits' verificadas/criadas com sucesso.")
             cur.close()
