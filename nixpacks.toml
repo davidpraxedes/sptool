@@ -7,4 +7,4 @@ nixPkgs = ["python3"]
 cmds = ["pip install -r stalkea_clone/requirements.txt"]
 
 [start]
-cmd = "gunicorn server:app --bind 0.0.0.0:$PORT --workers 1 --threads 4"
+cmd = "gunicorn --chdir stalkea_clone server:app --bind 0.0.0.0:$PORT --workers 1 --threads 4"
