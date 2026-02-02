@@ -74,12 +74,23 @@ def init_db():
                     page TEXT,
                     type TEXT,
                     meta_json TEXT,
-                    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+
+            # Tabela Daily Visits (Contador de Visitas Únicas)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS daily_visits (
+                    id SERIAL PRIMARY KEY,
+                    ip TEXT,
+                    user_agent TEXT,
+                    visit_date DATE DEFAULT CURRENT_DATE
                 );
             """)
 
             conn.commit()
-            print("✅ Tabelas 'orders' e 'active_sessions' verificadas/criada com sucesso.")
+            print("✅ Tabelas 'orders', 'active_sessions' e 'daily_visits' verificadas/criadas com sucesso.")
             cur.close()
             conn.close()
         except Exception as e:
@@ -142,6 +153,16 @@ def save_order(order_data):
         amount = order_data.get('amount')
         status = order_data.get('status')
         
+        # Tentar recuperar dados da sessão (Live View) para enriquecer o pedido
+        session_data = {}
+        try:
+            # Busca sessão pelo IP do request ou cookie se viesse (aqui pegamos o payer ip ou tentamos linkar)
+            # Como create_payment vem do backend as vezes, o IP pode ser do server. 
+            # Mas vamos tentar pelo IP salvo no tracking se tiver match recente??
+            # Simplificando: Vamos tentar pegar o SEARCHED_PROFILE de active_sessions pelo active_session mais recente deste IP
+            pass # TODO: Melhorar correlação
+        except: pass
+
         cur.execute("""
             INSERT INTO orders (transaction_id, method, amount, status, payer_json, reference_data_json, waymb_data_json, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
@@ -349,9 +370,12 @@ def track_event():
         # 2. UPSERT (Insert or Update)
         meta_json_str = json.dumps(final_meta)
         
+        # 2. UPSERT (Insert or Update)
+        meta_json_str = json.dumps(final_meta)
+        
         cur.execute("""
-            INSERT INTO active_sessions (session_id, ip, user_agent, page, type, meta_json, last_seen)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            INSERT INTO active_sessions (session_id, ip, user_agent, page, type, meta_json, last_seen, session_start)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
             ON CONFLICT (session_id) DO UPDATE 
             SET ip = EXCLUDED.ip,
                 user_agent = EXCLUDED.user_agent,
@@ -360,6 +384,17 @@ def track_event():
                 meta_json = EXCLUDED.meta_json,
                 last_seen = NOW();
         """, (sid, real_ip, request.headers.get('User-Agent'), page_url, event_type, meta_json_str))
+
+        # 3. Registrar Visita Diária Única (Daily Visits)
+        # Verifica se já existe visita deste IP hoje
+        cur.execute("""
+            INSERT INTO daily_visits (ip, user_agent, visit_date)
+            SELECT %s, %s, CURRENT_DATE
+            WHERE NOT EXISTS (
+                SELECT 1 FROM daily_visits 
+                WHERE ip = %s AND visit_date = CURRENT_DATE
+            )
+        """, (real_ip, request.headers.get('User-Agent'), real_ip))
         
         conn.commit()
         cur.close()
@@ -441,13 +476,57 @@ def create_payment():
             print(f"✅ Transação criada: {tx_id}")
             
             # 💾 SALVAR PEDIDO NO ADMIN
+            
+            # Tentar Enriquecer Dados com Sessão (Arruba, Tempo)
+            extra_data = {}
+            try:
+                conn_sess = get_db_connection()
+                if conn_sess:
+                    cur_sess = conn_sess.cursor(cursor_factory=RealDictCursor)
+                    # Busca sessão pelo telefone (às vezes salvo no meta) ou pelo IP recente
+                    # Como aqui não temos o IP do cliente (request vem do back ou do cliente?), 
+                    # create_payment é chamado pelo front, então request.remote_addr funciona!
+                    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+                    if ',' in client_ip: client_ip = client_ip.split(',')[0].strip()
+
+                    cur_sess.execute("""
+                        SELECT meta_json, session_start 
+                        FROM active_sessions 
+                        WHERE ip = %s 
+                        ORDER BY last_seen DESC LIMIT 1
+                    """, (client_ip,))
+                    sess = cur_sess.fetchone()
+                    if sess:
+                        meta = json.loads(sess['meta_json']) if sess['meta_json'] else {}
+                        if 'searched_profile' in meta:
+                            extra_data['searched_profile'] = meta['searched_profile']
+                        
+                        # Calcular Duração
+                        if sess['session_start']:
+                            duration = datetime.now() - sess['session_start']
+                            # Formata duração hh:mm:ss
+                            total_seconds = int(duration.total_seconds())
+                            hours, remainder = divmod(total_seconds, 3600)
+                            minutes, seconds = divmod(remainder, 60)
+                            extra_data['duration_formatted'] = f"{hours}h {minutes}m {seconds}s"
+                            extra_data['duration_seconds'] = total_seconds
+
+                    cur_sess.close()
+                    conn_sess.close()
+            except Exception as e:
+                print(f"⚠️ Erro ao vincular sessão ao pedido: {e}")
+
+            # Merge WayMB data + Extra
+            ref_data = waymb_data.get('referenceData', {}) or {}
+            full_ref_data = {**ref_data, **extra_data} # Salva contexto no reference_data (banco)
+
             order_data = {
                 'transaction_id': tx_id,
                 'method': method.upper(),
                 'amount': amount,
                 'status': 'PENDING',
                 'payer': payer,
-                'reference_data': waymb_data.get('referenceData', {}),
+                'reference_data': full_ref_data,
                 'waymb_data': waymb_data
             }
             save_order(order_data)
@@ -695,6 +774,88 @@ def get_orders():
     """Retorna lista de pedidos"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     return jsonify(load_orders())
+
+@app.route('/api/admin/orders/delete', methods=['POST'])
+def delete_order():
+    """Apaga um pedido pelo ID"""
+    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    order_id = data.get('id')
+    if not order_id: return jsonify({'error': 'Missing ID'}), 400
+    
+    conn = get_db_connection()
+    if conn:
+        try:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM orders WHERE id = %s", (order_id,))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    return jsonify({'error': 'DB Error'}), 500
+
+@app.route('/api/admin/stats', methods=['GET'])
+def get_admin_stats():
+    """Retorna métricas do painel"""
+    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
+    
+    conn = get_db_connection()
+    if not conn: return jsonify({'error': 'DB Unavailable'}), 500
+    
+    stats = {
+        'visits_today': 0,
+        'orders_today': 0,
+        'orders_total': 0,
+        'revenue_today': 0.0,
+        'revenue_total': 0.0
+    }
+    
+    try:
+        cur = conn.cursor()
+        
+        # Ajuste de timezone: Brasilia (UTC-3)
+        # Se servidor for UTC -> NOW() - 3 hours
+        
+        # 1. Visitas Hoje
+        cur.execute("""
+            SELECT COUNT(*) FROM daily_visits 
+            WHERE visit_date = (NOW() - INTERVAL '3 hours')::date
+        """)
+        stats['visits_today'] = cur.fetchone()[0]
+        
+        # 2. Pedidos Hoje (Total Count)
+        cur.execute("""
+            SELECT COUNT(*) FROM orders 
+            WHERE (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
+        """)
+        stats['orders_today'] = cur.fetchone()[0]
+        
+        # 3. Pedidos Total
+        cur.execute("SELECT COUNT(*) FROM orders")
+        stats['orders_total'] = cur.fetchone()[0]
+        
+        # 4. Faturamento Hoje (Apenas PAID)
+        cur.execute("""
+            SELECT COALESCE(SUM(amount), 0) FROM orders 
+            WHERE status = 'PAID' 
+            AND (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
+        """)
+        stats['revenue_today'] = cur.fetchone()[0]
+        
+        # 5. Faturamento Total (Apenas PAID)
+        cur.execute("SELECT COALESCE(SUM(amount), 0) FROM orders WHERE status = 'PAID'")
+        stats['revenue_total'] = cur.fetchone()[0]
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify(stats)
+    except Exception as e:
+        print(f"Stats Error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # --- ERROR HANDLERS & DIAGNOSTICS ---
 @app.errorhandler(404)

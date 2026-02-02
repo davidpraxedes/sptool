@@ -12,6 +12,161 @@
 </head>
 
 <body>
+    <!-- MODAL STYLE -->
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            color: #E2E8F0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 20px;
+        }
+
+        .info-group {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3d3d3d;
+        }
+
+        .info-group h3 {
+            margin-top: 0;
+            color: #10B981;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .info-group p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-group strong {
+            color: #94a3b8;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .text-yellow {
+            color: #F59E0B !important;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            color: #ef4444;
+            cursor: pointer;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        tr.clickable:hover {
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+        }
+    </style>
+
+    <!-- ORDER DETAIL MODAL -->
+    <div id="orderModal" class="modal-overlay hidden" onclick="if(event.target === this) closeModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="margin:0;">Pedido #<span id="modalOrderId"></span></h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-group">
+                    <h3>Contexto da Sessão</h3>
+                    <p><strong>Perfil Pesquisado (@):</strong> <span id="modalSearchedProfile"
+                            class="text-yellow">--</span></p>
+                    <p><strong>Duração da Sessão:</strong> <span id="modalDuration">--</span></p>
+                </div>
+
+                <div class="info-group">
+                    <h3>Cliente</h3>
+                    <p><strong>Nome:</strong> <span id="modalName"></span></p>
+                    <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+                    <p><strong>Telefone:</strong> <span id="modalPhone"></span></p>
+                    <p><strong>CPF:</strong> <span id="modalDoc"></span></p>
+                </div>
+
+                <div class="info-group">
+                    <h3>Transação</h3>
+                    <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                    <p><strong>Valor:</strong> <span id="modalAmount"></span></p>
+                    <p><strong>Método:</strong> <span id="modalMethod"></span></p>
+                    <p><strong>ID WayMB:</strong> <span id="modalTxId"
+                            style="font-family: monospace; font-size: 12px;"></span></p>
+                </div>
+
+                <div class="info-group hidden" id="modalBumpsGroup">
+                    <h3>Itens Adicionais (Bumps)</h3>
+                    <div id="modalBumps"></div>
+                </div>
+
+                <div class="info-group">
+                    <h3>Dados Brutos</h3>
+                    <details>
+                        <summary style="cursor:pointer; color:#94a3b8; font-size: 12px;">Ver Raw Data</summary>
+                        <pre id="modalRawData"
+                            style="font-size: 10px; color: #64748b; white-space: pre-wrap; margin-top: 10px;"></pre>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="dashboard-layout">
         <!-- SIDEBAR -->
         <aside class="sidebar">
@@ -71,16 +226,27 @@
             <!-- Stats Overview -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Visitantes Online</div>
+                    <div class="stat-label">Online Agora</div>
                     <div class="stat-value text-green" id="statOnline">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Pedidos Hoje</div>
-                    <div class="stat-value text-purple" id="statOrders">0</div>
+                    <div class="stat-label">Visitas Hoje</div>
+                    <div class="stat-value text-green" id="statVisitsToday">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Faturação Recente</div>
-                    <div class="stat-value" id="statRevenue">0,00€</div>
+                    <div class="stat-label">Pedidos Hoje</div>
+                    <div class="stat-value text-purple">
+                        <span id="statOrdersToday">0</span> <span style="font-size:14px; color:#6B7280;">/ <span
+                                id="statOrdersTotal">0</span></span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Faturam. Hoje (Pago)</div>
+                    <div class="stat-value text-green" id="statRevenueToday">0,00€</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Faturam. Total</div>
+                    <div class="stat-value" id="statRevenueTotal">0,00€</div>
                 </div>
             </div>
 
@@ -131,6 +297,7 @@
                                 <th>Extras</th> <!-- New Column -->
                                 <th>Tipo</th>
                                 <th>Status</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -332,6 +499,13 @@
                         statusBadge = `<span class="status-badge" style="background:#374151;color:#9CA3AF">${status}</span>`;
                     }
 
+                    row.classList.add('clickable');
+                    row.onclick = (e) => {
+                        // Não abrir se clicou no botão de apagar
+                        if (e.target.closest('.delete-btn')) return;
+                        openModal(order);
+                    };
+
                     row.innerHTML = `
                          <td style="font-family: 'JetBrains Mono', monospace;">#${order.id}</td>
                          <td>${new Date(order.created_at).toLocaleString()}</td>
@@ -340,10 +514,94 @@
                          <td>${bumpsHtml}</td>
                          <td>${type}</td>
                          <td>${statusBadge}</td>
+                         <td>
+                            <button class="delete-btn" onclick="deleteOrder(${order.id})">
+                                <svg fill="none" class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                         </td>
                     `;
                     tbody.appendChild(row);
                 });
+
+                // Fetch Advanced Stats
+                fetchStats();
+
             } catch (e) { console.error('Error fetching orders:', e); }
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                const stats = await res.json();
+
+                document.getElementById('statVisitsToday').textContent = stats.visits_today;
+                document.getElementById('statOrdersToday').textContent = stats.orders_today;
+                document.getElementById('statOrdersTotal').textContent = stats.orders_total;
+                document.getElementById('statRevenueToday').textContent = stats.revenue_today.toFixed(2) + '€';
+                document.getElementById('statRevenueTotal').textContent = stats.revenue_total.toFixed(2) + '€';
+
+            } catch (e) { console.error(e); }
+        }
+
+        async function deleteOrder(id) {
+            if (!confirm('Tem certeza que deseja APAGAR este pedido? Essa ação é irreverssível.')) return;
+            try {
+                const res = await fetch('/api/admin/orders/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                if (res.ok) {
+                    fetchOrders(); // Refresh
+                } else {
+                    alert('Erro ao apagar');
+                }
+            } catch (e) { console.error(e); alert('Erro ao apagar'); }
+        }
+
+        function openModal(order) {
+            document.getElementById('modalOrderId').textContent = order.id;
+
+            // Cliente
+            const p = order.payer || {};
+            document.getElementById('modalName').textContent = p.name || 'N/A';
+            document.getElementById('modalEmail').textContent = p.email || 'N/A';
+            document.getElementById('modalPhone').textContent = p.phone || 'N/A';
+            document.getElementById('modalDoc').textContent = p.document || 'N/A';
+
+            // Transação
+            document.getElementById('modalStatus').innerHTML = order.status || 'PENDING';
+            document.getElementById('modalAmount').textContent = (order.amount || 0) + '€';
+            document.getElementById('modalMethod').textContent = (order.method || 'N/A').toUpperCase();
+            document.getElementById('modalTxId').textContent = order.transaction_id || 'N/A';
+
+            // Produtos / Bumps
+            const bumps = order.meta?.bumps || [];
+            const bumpsContainer = document.getElementById('modalBumps');
+            if (bumps.length > 0) {
+                bumpsContainer.innerHTML = bumps.map(b =>
+                    `<div style="background:#374151; padding:4px 8px; border-radius:4px; margin-top:4px; font-size:13px; border:1px solid #4B5563;">📦 ${b}</div>`
+                ).join('');
+                document.getElementById('modalBumpsGroup').classList.remove('hidden');
+            } else {
+                document.getElementById('modalBumpsGroup').classList.add('hidden');
+            }
+
+            // Context (Sessão)
+            const ref = order.reference_data || {};
+            document.getElementById('modalSearchedProfile').textContent = ref.searched_profile || '--';
+            document.getElementById('modalDuration').textContent = ref.duration_formatted || '--';
+
+            // Raw
+            document.getElementById('modalRawData').textContent = JSON.stringify(order, null, 2);
+
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.add('hidden');
         }
 
         async function logout() {
