@@ -32,8 +32,8 @@ def log_request_info():
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STALKEA_BASE = 'https://stalkea.ai/api'
 
-# DATABASE URL (Fallback para a string fornecida pelo usuário se a ENV não existir)
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:ZciydaCzmAgnGnzrztdzmMONpqHEPNxK@yamabiko.proxy.rlwy.net:32069/railway')
+# DATABASE URL (Suporte para Vercel Postgres: POSTGRES_URL)
+DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL') or 'postgresql://postgres:ZciydaCzmAgnGnzrztdzmMONpqHEPNxK@yamabiko.proxy.rlwy.net:32069/railway'
 
 # --- DB HELPERS ---
 
