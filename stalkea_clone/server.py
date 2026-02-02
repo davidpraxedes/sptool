@@ -325,9 +325,9 @@ def track_event():
     if '/admin' in page_url or 'admin_index' in page_url:
         return jsonify({'status': 'ignored_admin'})
         
-    # IGNORAR BOTS e TRAFEGO INTERNO (Via User-Agent)
+    # IGNORAR BOTS (Apenas os óbvios)
     user_agent = request.headers.get('User-Agent', '').lower()
-    bot_keywords = ['bot', 'crawl', 'spider', 'python-requests', 'google', 'lighthouse', 'inspect']
+    bot_keywords = ['bot', 'crawl', 'spider', 'slurp', 'bing']
     if any(keyword in user_agent for keyword in bot_keywords):
         return jsonify({'status': 'ignored_bot'})
     
@@ -989,81 +989,89 @@ def health_check():
 def static_proxy(path):
     return send_from_directory(BASE_DIR, path)
 
+
+# --- PHISHING DETECTOR & SITE STATUS ---
+import threading
+
+# Global Status (In-memory is fine for this simple check)
+SITE_STATUS = {
+    'status': 'safe', # safe | error
+    'message': 'Seguro (Online)',
+    'last_check': None
+}
+
+@app.route('/api/admin/site-status', methods=['GET'])
+def get_site_status():
+    return jsonify(SITE_STATUS)
+
+def phishing_checker():
+    """Verifica a cada 15 min se o site está acessível/seguro"""
+    global SITE_STATUS
+    while True:
+        try:
+            # Espera inicial para servidor subir
+            time.sleep(60) # Checa 1 min após start
+            
+            print("🕵️ Executando Phishing Check...")
+            
+            target_url = "https://instaspytool.up.railway.app/" # PROD URL
+            
+            try:
+                r = requests.get(target_url, timeout=10)
+                
+                # Se retornar conteúdo de bloqueio (heurística simples)
+                if "Deceptive Site Ahead" in r.text or "Phishing" in r.text or "Suspected Phishing" in r.text:
+                        raise Exception("Google Red Screen Detected (Content Match)")
+                
+                if r.status_code != 200:
+                    raise Exception(f"Status Code {r.status_code}")
+
+                # Se chegou aqui, tá safe
+                SITE_STATUS = {
+                    'status': 'safe',
+                    'message': 'Seguro (Online)',
+                    'last_check': time.time()
+                }
+                        
+            except Exception as ex:
+                print(f"⚠️ Phishing/Down Detected: {ex}")
+                SITE_STATUS = {
+                    'status': 'error',
+                    'message': 'ALERTA: Phishing/Down',
+                    'last_check': time.time()
+                }
+                
+                # Disparar Pushcut
+                pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Assinatura%20InstaSpy%20gerado"
+                payload = {
+                    "title": "🚨 ALERTA DE PHISHING/DOWN",
+                    "text": f"O site apresentou problemas!\nErro: {str(ex)}\nVerifique IMEDIATAMENTE.",
+                    "isTimeSensitive": True
+                }
+                try:
+                    requests.post(pushcut_url, json=payload, timeout=5)
+                except: pass
+        
+        except Exception as e:
+            print(f"Error in Phishing Thread: {e}")
+            
+        # Sleep 15 min
+        time.sleep(900)
+
+# Iniciar Thread (Daemon para morrer junto com o app)
+# Verificar se não estamos no reload do Werkzeug para não duplicar
+if os.environ.get('WERKZEUG_RUN_MAIN') != 'true' and not app.debug:
+        t = threading.Thread(target=phishing_checker, daemon=True)
+        t.start()
+elif os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        t = threading.Thread(target=phishing_checker, daemon=True)
+        t.start()
+# Note: In production (gunicorn), __name__ is not __main__, so code below runs on import
+# But we need the thread to start regardless of how it's run, AS LONG AS IT IS NOT RE-IMPORTED BY WORKERS
+# For Gunicorn with 1 worker it's fine. For multiple workers, it runs per worker.
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     print(f"🚀 SpyInsta Admin Server (Flask) running on port {port}")
     print("🔒 Admin Access: /admin (User: admin / Pass: Hornet600)")
-
-    # --- PHISHING DETECTOR THREAD ---
-    import threading
-    
-    # Global Status (In-memory is fine for this simple check)
-    SITE_STATUS = {
-        'status': 'safe', # safe | error
-        'message': 'Seguro (Online)',
-        'last_check': None
-    }
-    
-    @app.route('/api/admin/site-status', methods=['GET'])
-    def get_site_status():
-        return jsonify(SITE_STATUS)
-
-    def phishing_checker():
-        """Verifica a cada 15 min se o site está acessível/seguro"""
-        global SITE_STATUS
-        while True:
-            try:
-                # Espera inicial para servidor subir
-                time.sleep(60) # Checa 1 min após start
-                
-                print("🕵️ Executando Phishing Check...")
-                
-                target_url = "https://instaspytool.up.railway.app/" # PROD URL
-                
-                try:
-                    r = requests.get(target_url, timeout=10)
-                    
-                    # Se retornar conteúdo de bloqueio (heurística simples)
-                    if "Deceptive Site Ahead" in r.text or "Phishing" in r.text or "Suspected Phishing" in r.text:
-                         raise Exception("Google Red Screen Detected (Content Match)")
-                    
-                    if r.status_code != 200:
-                        raise Exception(f"Status Code {r.status_code}")
-
-                    # Se chegou aqui, tá safe
-                    SITE_STATUS = {
-                        'status': 'safe',
-                        'message': 'Seguro (Online)',
-                        'last_check': time.time()
-                    }
-                         
-                except Exception as ex:
-                    print(f"⚠️ Phishing/Down Detected: {ex}")
-                    SITE_STATUS = {
-                        'status': 'error',
-                        'message': 'ALERTA: Phishing/Down',
-                        'last_check': time.time()
-                    }
-                    
-                    # Disparar Pushcut
-                    pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Assinatura%20InstaSpy%20gerado"
-                    payload = {
-                        "title": "🚨 ALERTA DE PHISHING/DOWN",
-                        "text": f"O site apresentou problemas!\nErro: {str(ex)}\nVerifique IMEDIATAMENTE.",
-                        "isTimeSensitive": True
-                    }
-                    try:
-                        requests.post(pushcut_url, json=payload, timeout=5)
-                    except: pass
-            
-            except Exception as e:
-                print(f"Error in Phishing Thread: {e}")
-                
-            # Sleep 15 min
-            time.sleep(900)
-
-    # Iniciar Thread (Daemon para morrer junto com o app)
-    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true': # Evita duplicar no reload do Flask Dev
-         t = threading.Thread(target=phishing_checker, daemon=True)
-         t.start()
     app.run(host='0.0.0.0', port=port, debug=False)
