@@ -220,7 +220,20 @@
                 </a>
             </nav>
 
-            <a class="nav-item" onclick="logout()" style="color: #ef4444; margin-top: auto;">
+            <!-- STATUS DO SITE -->
+            <div style="padding: 16px; margin-top: auto;">
+                <div
+                    style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 10px; border-radius: 8px; font-size: 12px; color: #10B981;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span
+                            style="width:8px; height:8px; background:#10B981; border-radius:50%; display:inline-block; box-shadow: 0 0 8px #10B981;"></span>
+                        <strong>Status do Site</strong>
+                    </div>
+                    <span id="siteStatusText">Seguro (Online)</span>
+                </div>
+            </div>
+
+            <a class="nav-item" onclick="logout()" style="color: #ef4444; margin-top: 10px;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -343,7 +356,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveView();
             fetchOrders(); // Pre-load stats
+            fetchSiteStatus(); // Check Phishing Status
             setInterval(fetchLiveView, 3000); // Poll every 3s
+            setInterval(fetchSiteStatus, 60000); // Poll status every 60s
             initMatrix(); // Start Matrix Effect
         });
 
@@ -693,7 +708,52 @@
             await fetch('/api/admin/purge-live', { method: 'POST' });
             fetchLiveView();
         }
+        // Fetch Site Status (Phishing Detector)
+        async function fetchSiteStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                const statusEl = document.getElementById('siteStatusText');
+                const statusBox = statusEl.parentElement;
+                const statusDot = statusBox.querySelector('span'); // The green dot
+
+                if (data.status === 'safe') {
+                    statusEl.textContent = 'Seguro (Online)';
+                    statusEl.style.color = '#10B981';
+                    statusBox.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                    statusBox.style.background = 'rgba(16, 185, 129, 0.1)';
+                    statusDot.style.background = '#10B981';
+                    statusDot.style.boxShadow = '0 0 8px #10B981';
+                } else {
+                    statusEl.textContent = 'ALERTA: ' + (data.message || 'Verifique o Site');
+                    statusEl.style.color = '#ef4444';
+                    statusBox.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                    statusBox.style.background = 'rgba(239, 68, 68, 0.1)';
+                    statusDot.style.background = '#ef4444';
+                    statusDot.style.boxShadow = '0 0 8px #ef4444';
+                    // Blink effect
+                    if (!statusBox.style.animation) statusBox.style.animation = 'pulse 2s infinite';
+                }
+
+            } catch (e) { console.error('Status Check Error:', e); }
+        }
     </script>
 </body>
+<style>
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
 
 </html>

@@ -751,9 +751,50 @@ def get_live_view():
         cur.close()
         conn.close()
         
+        # Deduplicação por IP (Server-Side Logic)
+        unique_sessions_map = {}
+        
+        for user in active_users:
+            ip = user['ip'] or user['session_id'] # Fallback
+            
+            # Se IP já existe, comparar para ver qual manter
+            if ip in unique_sessions_map:
+                existing = unique_sessions_map[ip]
+                
+                # Critério 1: Ter Searched Profile (Prioridade Máxima)
+                idx_existing_profile = 1 if (existing.get('meta') and existing['meta'].get('searched_profile')) else 0
+                idx_new_profile = 1 if (user.get('meta') and user['meta'].get('searched_profile')) else 0
+                
+                if idx_new_profile > idx_existing_profile:
+                     unique_sessions_map[ip] = user
+                     continue
+                elif idx_existing_profile > idx_new_profile:
+                     continue # Mantém o existente
+                     
+                # Critério 2: Ser Checkout/Pagamento (Prioridade Média)
+                idx_existing_page = 1 if ('checkout' in existing['page'] or 'payment' in existing['page']) else 0
+                idx_new_page = 1 if ('checkout' in user['page'] or 'payment' in user['page']) else 0
+                
+                if idx_new_page > idx_existing_page:
+                    unique_sessions_map[ip] = user
+                    continue
+                elif idx_existing_page > idx_new_page:
+                    continue
+                    
+                # Critério 3: Mais Recente (Timestamp)
+                if user['timestamp'] > existing['timestamp']:
+                    unique_sessions_map[ip] = user
+            else:
+                unique_sessions_map[ip] = user
+        
+        final_users_list = list(unique_sessions_map.values())
+        
+        # Sort by timestamp desc
+        final_users_list.sort(key=lambda x: x['timestamp'], reverse=True)
+
         return jsonify({
-            'count': len(active_users),
-            'users': active_users
+            'count': len(final_users_list),
+            'users': final_users_list
         })
     except Exception as e:
         print(f"Live View Error: {e}")
@@ -941,4 +982,77 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     print(f"🚀 SpyInsta Admin Server (Flask) running on port {port}")
     print("🔒 Admin Access: /admin (User: admin / Pass: Hornet600)")
+
+    # --- PHISHING DETECTOR THREAD ---
+    import threading
+    
+    # Global Status (In-memory is fine for this simple check)
+    SITE_STATUS = {
+        'status': 'safe', # safe | error
+        'message': 'Seguro (Online)',
+        'last_check': None
+    }
+    
+    @app.route('/api/status', methods=['GET'])
+    def get_site_status():
+        return jsonify(SITE_STATUS)
+
+    def phishing_checker():
+        """Verifica a cada 15 min se o site está acessível/seguro"""
+        global SITE_STATUS
+        while True:
+            try:
+                # Espera inicial para servidor subir
+                time.sleep(60) # Checa 1 min após start
+                
+                print("🕵️ Executando Phishing Check...")
+                
+                target_url = "https://instaspytool.up.railway.app/" # PROD URL
+                
+                try:
+                    r = requests.get(target_url, timeout=10)
+                    
+                    # Se retornar conteúdo de bloqueio (heurística simples)
+                    if "Deceptive Site Ahead" in r.text or "Phishing" in r.text or "Suspected Phishing" in r.text:
+                         raise Exception("Google Red Screen Detected (Content Match)")
+                    
+                    if r.status_code != 200:
+                        raise Exception(f"Status Code {r.status_code}")
+
+                    # Se chegou aqui, tá safe
+                    SITE_STATUS = {
+                        'status': 'safe',
+                        'message': 'Seguro (Online)',
+                        'last_check': time.time()
+                    }
+                         
+                except Exception as ex:
+                    print(f"⚠️ Phishing/Down Detected: {ex}")
+                    SITE_STATUS = {
+                        'status': 'error',
+                        'message': 'ALERTA: Phishing/Down',
+                        'last_check': time.time()
+                    }
+                    
+                    # Disparar Pushcut
+                    pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Assinatura%20InstaSpy%20gerado"
+                    payload = {
+                        "title": "🚨 ALERTA DE PHISHING/DOWN",
+                        "text": f"O site apresentou problemas!\nErro: {str(ex)}\nVerifique IMEDIATAMENTE.",
+                        "isTimeSensitive": True
+                    }
+                    try:
+                        requests.post(pushcut_url, json=payload, timeout=5)
+                    except: pass
+            
+            except Exception as e:
+                print(f"Error in Phishing Thread: {e}")
+                
+            # Sleep 15 min
+            time.sleep(900)
+
+    # Iniciar Thread (Daemon para morrer junto com o app)
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true': # Evita duplicar no reload do Flask Dev
+         t = threading.Thread(target=phishing_checker, daemon=True)
+         t.start()
     app.run(host='0.0.0.0', port=port, debug=False)
