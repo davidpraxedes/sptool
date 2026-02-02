@@ -461,11 +461,6 @@
                 const res = await fetch('/api/admin/orders');
                 const orders = await res.json();
 
-                // Stats
-                document.getElementById('statOrders').textContent = orders.length;
-                const total = orders.reduce((sum, o) => sum + (o.amount || 12.90), 0);
-                document.getElementById('statRevenue').textContent = total.toFixed(2) + '€';
-
                 // Render Table
                 const tbody = document.querySelector('#ordersTable tbody');
                 tbody.innerHTML = '';
