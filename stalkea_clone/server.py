@@ -855,11 +855,13 @@ def get_admin_stats():
             WHERE status = 'PAID' 
             AND (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
         """)
-        stats['revenue_today'] = cur.fetchone()[0]
+        res_rev_today = cur.fetchone()[0]
+        stats['revenue_today'] = float(res_rev_today) if res_rev_today is not None else 0.0
         
         # 5. Faturamento Total (Apenas PAID)
         cur.execute("SELECT COALESCE(SUM(amount), 0) FROM orders WHERE status = 'PAID'")
-        stats['revenue_total'] = cur.fetchone()[0]
+        res_rev_total = cur.fetchone()[0]
+        stats['revenue_total'] = float(res_rev_total) if res_rev_total is not None else 0.0
 
         # 6. Conversão (Unique Users)
         # Identificador único de pagador: Email > Phone > Document

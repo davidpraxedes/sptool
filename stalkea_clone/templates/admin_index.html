@@ -14,7 +14,7 @@
 <body>
     <!-- Matrix Background -->
     <canvas id="matrix-canvas"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.4; pointer-events: none; z-index: -1;"></canvas>
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.05; pointer-events: none; z-index: -1;"></canvas>
 
     <!-- MODAL STYLE -->
     <style>
@@ -373,7 +373,7 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.fillStyle = '#0F0';
+                ctx.fillStyle = '#ab58f4';
                 ctx.font = fontSize + 'px monospace';
 
                 for (let i = 0; i < rainDrops.length; i++) {
@@ -604,11 +604,15 @@
                 const res = await fetch('/api/admin/stats');
                 const stats = await res.json();
 
-                document.getElementById('statVisitsToday').textContent = stats.visits_today;
-                document.getElementById('statOrdersToday').textContent = stats.orders_today;
-                document.getElementById('statOrdersTotal').textContent = stats.orders_total;
-                document.getElementById('statRevenueToday').textContent = stats.revenue_today.toFixed(2) + '€';
-                document.getElementById('statRevenueTotal').textContent = stats.revenue_total.toFixed(2) + '€';
+                document.getElementById('statVisitsToday').textContent = stats.visits_today || 0;
+                document.getElementById('statOrdersToday').textContent = stats.orders_today || 0;
+                document.getElementById('statOrdersTotal').textContent = stats.orders_total || 0;
+
+                const revToday = stats.revenue_today || 0;
+                const revTotal = stats.revenue_total || 0;
+
+                document.getElementById('statRevenueToday').textContent = revToday.toFixed(2) + '€';
+                document.getElementById('statRevenueTotal').textContent = revTotal.toFixed(2) + '€';
 
                 // Conversão
                 const convToday = stats.conversion_today || 0;
