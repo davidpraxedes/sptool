@@ -11,14 +11,4 @@
             "dest": "stalkea_clone/server.py"
         }
     ],
-    "crons": [
-        {
-            "path": "/api/cron/phishing-check",
-            "schedule": "0 10 * * *"
-        },
-        {
-            "path": "/api/cron/recovery-check",
-            "schedule": "*/10 * * * *"
-        }
-    ]
 }
