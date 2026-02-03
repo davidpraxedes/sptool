@@ -665,8 +665,8 @@ def send_payment_approved_email(order_data, amount):
                     <div style="padding: 32px; line-height: 1.6; color: #d4d4d8;">
                         <div style="text-align:center; margin-bottom:20px;">
                              <div style="background:#10B981; width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
-                                <!-- Check Icon SVG (White Stroke) -->
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <!-- Check Icon (Unicode for Email Compatibility) -->
+                                <span style="color:white; font-size:32px; font-weight:bold; line-height:1;">✓</span>
                              </div>
                         </div>
 
