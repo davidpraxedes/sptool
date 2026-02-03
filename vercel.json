@@ -10,5 +10,11 @@
             "src": "/(.*)",
             "dest": "stalkea_clone/server.py"
         }
+    ],
+    "crons": [
+        {
+            "path": "/api/cron/recovery-check",
+            "schedule": "*/15 * * * *"
+        }
     ]
 }
