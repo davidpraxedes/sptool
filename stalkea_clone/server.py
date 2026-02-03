@@ -27,11 +27,26 @@ def log_request_info():
         if ',' in real_ip: real_ip = real_ip.split(',')[0].strip()
         print(f"📡 Request: {request.method} {request.path} | Remote: {real_ip}")
         
-        # --- IP BLOCKING ---
+        # --- IP BLOCKING (Dynamic DB + Static) ---
         BLOCKED_IPS = ['31.22.201.99', '87.196.72.7']
         if real_ip in BLOCKED_IPS:
-            print(f"🚫 BLOCKED IP ATTEMPT: {real_ip}")
+            print(f"🚫 BLOCKED IP ATTEMPT (Static): {real_ip}")
             return "Acesso Negado / Access Denied", 403
+            
+        # Check DB for banned IP
+        try:
+            conn = get_db_connection()
+            if conn:
+                cur = conn.cursor()
+                cur.execute("SELECT 1 FROM blocked_ips WHERE ip = %s", (real_ip,))
+                is_banned = cur.fetchone()
+                cur.close()
+                conn.close()
+                if is_banned:
+                    print(f"🚫 BLOCKED IP ATTEMPT (DB): {real_ip}")
+                    return "Acesso Negado / Access Denied", 403
+        except Exception as e:
+            print(f"⚠️ DB Block Check Error: {e}")
 
 # --- CONFIGURAÇÃO E DADOS ---
 # Define diretório base absoluto para evitar erros de CWD no Railway
@@ -100,6 +115,15 @@ def init_db():
                     ip TEXT,
                     user_agent TEXT,
                     visit_date DATE DEFAULT CURRENT_DATE
+                );
+            """)
+
+            # Tabela Blocked IPs (Banimento Dinâmico)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS blocked_ips (
+                    ip TEXT PRIMARY KEY,
+                    reason TEXT,
+                    banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
 
@@ -1298,6 +1322,51 @@ def purge_live_view():
     if conn:
         try:
              cur = conn.cursor()
+             cur.execute("DELETE FROM active_sessions")
+             conn.commit()
+             cur.close()
+             return jsonify({'success': True})
+        except: return jsonify({'error': 'DB Error'}), 500
+    return jsonify({'status': 'ok'})
+
+@app.route('/api/admin/ban-ip', methods=['POST'])
+def ban_ip():
+    """Banir um IP dinamicamente"""
+    if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json or {}
+    ip_to_ban = data.get('ip')
+    reason = data.get('reason', 'Manual Ban via Admin')
+    
+    if not ip_to_ban: return jsonify({'error': 'Missing IP'}), 400
+    
+    # Previne auto-ban (opcional, mas bom)
+    current_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if ',' in current_ip: current_ip = current_ip.split(',')[0].strip()
+    
+    if ip_to_ban == current_ip:
+        return jsonify({'error': 'Você não pode banir seu próprio IP!'}), 400
+
+    conn = get_db_connection()
+    if conn:
+        try:
+             cur = conn.cursor()
+             cur.execute("""
+                INSERT INTO blocked_ips (ip, reason) VALUES (%s, %s)
+                ON CONFLICT (ip) DO NOTHING
+             """, (ip_to_ban, reason))
+             
+             # Opcional: Limpar sessões desse IP
+             cur.execute("DELETE FROM active_sessions WHERE ip = %s", (ip_to_ban,))
+             
+             conn.commit()
+             cur.close()
+             conn.close()
+             print(f"🚫 IP BANNED via Admin: {ip_to_ban}")
+             return jsonify({'success': True})
+        except Exception as e:
+             return jsonify({'error': str(e)}), 500
+    return jsonify({'error': 'DB Connection Failed'}), 500
              cur.execute("TRUNCATE active_sessions")
              conn.commit()
              cur.close()
