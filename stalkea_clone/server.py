@@ -1082,6 +1082,72 @@ def check_payment_status():
             'error': str(e)
         }), 500
 
+
+@app.route('/api/webhook/waymb', methods=['POST'])
+def webhook_waymb():
+    """Recebe notificação de pagamento do Gateway (WayMB)"""
+    try:
+        data = request.json or {}
+        print(f"🔔 Webhook WayMB recebido: {json.dumps(data)}")
+        
+        # WayMB envia: { "transactionID": "...", "amount": 12.9, "status": "COMPLETED", ... }
+        # Ou formato simplificado dependendo da config.
+        # Vamos ser tolerantes.
+        
+        tx_id = data.get('transactionID') or data.get('id')
+        status = data.get('status', 'PAID') # Se chamou webhook, geralmente é sucesso
+        
+        if not tx_id:
+             return jsonify({'error': 'Missing ID'}), 400
+             
+        # Atualizar status no DB
+        conn = get_db_connection()
+        if conn:
+            cur = conn.cursor()
+            
+            # Buscar pedido para pegar email e enviar notificação
+            cur.execute("SELECT payer_json, amount, status, id FROM orders WHERE transaction_id = %s", (tx_id,))
+            row = cur.fetchone()
+            
+            if row:
+                current_status = row[2]
+                
+                # Evitar duplicar email se já estiver pago
+                if current_status == 'PAID':
+                    print(f"ℹ️ Pedido {tx_id} já processado anteriormente.")
+                    cur.close()
+                    conn.close()
+                    return jsonify({'success': True, 'message': 'Already processed'})
+                
+                # Mudar para PAID
+                cur.execute("UPDATE orders SET status = 'PAID', updated_at = NOW() WHERE transaction_id = %s", (tx_id,))
+                conn.commit()
+                print(f"✅ Pedido {tx_id} marcado como PAID via Webhook")
+                
+                # Enviar Email
+                payer_json = row[0]
+                amount = row[1]
+                
+                # Reconstruir objeto order_data minimo para a função de email
+                order_data = {'payer_json': payer_json}
+                try:
+                    send_payment_approved_email(order_data, amount)
+                    print(f"📧 Email de aprovação disparado para pedido {tx_id}")
+                except Exception as e:
+                     print(f"⚠️ Erro ao disparar email aprovado no webhook: {e}")
+
+            else:
+                print(f"⚠️ Webhook: Pedido {tx_id} não encontrado no DB")
+                
+            cur.close()
+            conn.close()
+            
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"❌ Erro no Webhook: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/debug/orders', methods=['GET'])
 def debug_orders():
     """Retorna JSON bruto dos pedidos para debug"""
