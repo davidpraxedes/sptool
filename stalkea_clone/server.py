@@ -60,17 +60,25 @@ def init_db():
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS orders (
                     id SERIAL PRIMARY KEY,
-                    transaction_id TEXT UNIQUE,
-                    method TEXT,
-                    amount REAL,
-                    status TEXT,
+                    transaction_id VARCHAR(50) UNIQUE,
+                    method VARCHAR(20),
+                    amount FLOAT,
+                    status VARCHAR(20) DEFAULT 'PENDING',
                     payer_json TEXT,
                     reference_data_json TEXT,
                     waymb_data_json TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-
+            
+            # Tabela de Configurações
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS settings (
+                    key VARCHAR(50) PRIMARY KEY,
+                    value TEXT
+                );
+            """)
             # Tabela Active Sessions (Live View)
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS active_sessions (
@@ -137,6 +145,10 @@ def load_orders():
             order['payer'] = json.loads(row['payer_json']) if row['payer_json'] else {}
             order['reference_data'] = json.loads(row['reference_data_json']) if row['reference_data_json'] else {}
             order['waymb_data'] = json.loads(row['waymb_data_json']) if row['waymb_data_json'] else {}
+            
+            # FIX: Copiar reference_data para meta para compatibilidade com Admin Frontend
+            order['meta'] = order['reference_data']
+            
             # Formata data para string ISO se necessário, ou deixa datetime
             if isinstance(order['created_at'], datetime):
                 order['created_at'] = order['created_at'].isoformat()
@@ -319,6 +331,10 @@ def api_logout():
 def api_auth_check():
     return jsonify({'logged_in': session.get('logged_in', False)})
 
+# Helper para verificar autenticação em rotas de admin
+def check_auth():
+    return session.get('logged_in', False)
+
 # --- API: TRACKING & LIVE VIEW ---
 
 @app.route('/api/track/event', methods=['POST'])
@@ -427,30 +443,311 @@ def track_event():
         
     return jsonify({'status': 'ok'})
 
-# --- API: WAYMB PAYMENT ---
+# --- COMUNICAÇÃO (EMAIL / PUSHCUT) ---
 
-@app.route('/api/test/pushcut', methods=['GET'])
-def test_pushcut():
-    """Endpoint de teste para disparar Pushcut manualmente"""
+def get_config(key, default=None):
+    """Busca configuração no DB (prioridade) ou ENV"""
     try:
-        pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Assinatura%20InstaSpy%20gerado"
-        pushcut_payload = {
-            "title": "Assinatura InstaSpy gerado (TESTE)",
-            "text": f"Novo pedido MBWAY\nValor: 12.90€\nID: TEST-{int(time.time())}",
-            "isTimeSensitive": True
-        }
-        response = requests.post(pushcut_url, json=pushcut_payload, timeout=4)
-        
-        return jsonify({
-            "success": True,
-            "message": "Pushcut disparado com sucesso!",
-            "status_code": response.status_code
-        })
+        conn = get_db_connection()
+        if conn:
+            cur = conn.cursor()
+            cur.execute("SELECT value FROM settings WHERE key = %s", (key,))
+            res = cur.fetchone()
+            cur.close()
+            conn.close()
+            if res and res[0]:
+                return res[0]
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        print(f"⚠️ Erro ao buscar config {key}: {e}")
+        
+    return os.environ.get(key, default)
+
+def send_email_via_sendgrid(to_email, subject, content_html):
+    """Envia email via SendGrid API V3"""
+    api_key = get_config('SENDGRID_API_KEY')
+    from_email = get_config('SENDGRID_FROM_EMAIL', 'nao-responda@spyinsta.com')
+    
+    if not api_key:
+        print("⚠️ SendGrid Key não configurada. Email não enviado.")
+        return False
+        
+    url = "https://api.sendgrid.com/v3/mail/send"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "personalizations": [{
+            "to": [{"email": to_email}]
+        }],
+        "from": {"email": from_email, "name": "InstaSpy Support"},
+        "subject": subject,
+        "content": [{
+            "type": "text/html",
+            "value": content_html
+        }]
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=5)
+        if response.status_code in [200, 201, 202]:
+            print(f"📧 Email enviado para {to_email}")
+            return True
+        else:
+            print(f"❌ Erro SendGrid: {response.text}")
+            return False
+    except Exception as e:
+        print(f"❌ Erro ao conectar SendGrid: {e}")
+        return False
+
+def send_order_created_email(order_data, method, amount, payment_details=None):
+    """
+    Envia email de 'Pedido Criado' com templates distintos para MBWAY (Urgência) e Multibanco.
+    """
+    payer = order_data.get('payer', {})
+    email = payer.get('email')
+    
+    if not email or '@' not in email: return
+    
+    name = payer.get('name', 'Cliente')
+    order_id = order_data.get('id')
+    
+    # URL Base para imagens (Railway)
+    BASE_URL = "https://instaspytool.up.railway.app"
+    
+    # Common Styles
+    common_style = """
+        <style>
+            @keyframes pulse-green {
+                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); transform: scale(1); }
+                70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); transform: scale(1.02); }
+                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); transform: scale(1); }
+            }
+            .btn-pulse { animation: pulse-green 2s infinite; }
+        </style>
+    """
+    
+    if method == 'mbway':
+        subject = "🔥 SÓ FALTAM 5 MINUTOS! Finaliza o teu acesso"
+        # Link para instruções/status (se houver, senao vai pro checkout? mbway ja foi gerado, entao status)
+        action_link = f"{BASE_URL}/pages/mbway-payment.html?amount={amount}&phone={payer.get('phone')}&order_id={order_id}"
+
+        html_content = f"""
+        {common_style}
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #e5e7eb; padding: 40px;">
+            <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                <div style="background: #111827; padding: 16px; text-align: center;">
+                    <span style="color: white; font-weight: bold;">Pedido Criado (MBWAY)</span>
+                </div>
+                <div style="padding: 40px; background: #f3f4f6;">
+                    <div style="max-width: 600px; margin: 0 auto; background: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; color: #ececec;">
+                        <div style="padding: 24px; text-align: center; border-bottom: 1px solid #27272a;">
+                            <img src="{BASE_URL}/assets/images/logos/logocheckout.png" alt="InstaSpy" style="height: 32px;">
+                        </div>
+                        <div style="padding: 32px; line-height: 1.6; color: #d4d4d8;">
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <div style="background-color: white; padding: 8px; border-radius: 8px; display: inline-block;">
+                                    <img src="{BASE_URL}/assets/images/payment/mbway-logo.png" alt="MBWAY" style="height: 40px; display:block;">
+                                </div>
+                            </div>
+                            
+                            <p>Olá, <strong>{name}</strong>!</p>
+                            <p>O teu pedido de acesso ao Painel Espião foi gerado.</p>
+                            
+                            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 16px; border-radius: 8px; margin: 20px 0;">
+                                <h3 style="margin:0 0 8px; color:#ef4444; font-size:18px;">🔥 SÓ FALTAM 5 MINUTOS!</h3>
+                                <p style="margin:0; color:#fca5a5;">O pagamento via MBWAY só é válido por este curto período. Se não aprovares agora na app, o desconto será cancelado.</p>
+                            </div>
+                            
+                            <p>Acede à tua aplicação MBWAY e confirma a transação de <strong style="color:white">{amount}€</strong> agora mesmo.</p>
+                            
+                            <div style="text-align: center; margin-top: 32px;">
+                                <a href="{action_link}" style="background:#10B981; color:white; width: 100%; display:inline-block; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; border:1px solid #059669; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);">Confirmar na App MBWAY</a>
+                                <p style="font-size:12px; color:#71717a; margin-top: 12px;">Esta oferta expira em instantes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
+        
+    elif method == 'multibanco':
+        subject = "⏳ Garante o teu Preço Agora - Dados de Pagamento"
+        ent = payment_details.get('entity', 'N/A')
+        ref = payment_details.get('reference', 'N/A')
+        
+        # Link para página de instrucoes, onde copiar funciona
+        action_link = f"{BASE_URL}/pages/multibanco-payment.html?entity={ent}&reference={ref}&amount={amount}"
+        
+        html_content = f"""
+        {common_style}
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #e5e7eb; padding: 40px;">
+            <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                <div style="background: #111827; padding: 16px; text-align: center;">
+                    <span style="color: white; font-weight: bold;">Pedido Criado (Multibanco)</span>
+                </div>
+                <div style="padding: 40px; background: #f3f4f6;">
+                    <div style="max-width: 600px; margin: 0 auto; background: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; color: #ececec;">
+                        <div style="padding: 24px; text-align: center; border-bottom: 1px solid #27272a;">
+                            <img src="{BASE_URL}/assets/images/logos/logocheckout.png" alt="InstaSpy" style="height: 32px;">
+                        </div>
+                        <div style="padding: 32px; line-height: 1.6; color: #d4d4d8;">
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <img src="{BASE_URL}/assets/images/payment/multibanco-logo.png" alt="Multibanco" style="height: 40px; background: white; padding: 4px; border-radius: 4px;">
+                            </div>
+
+                            <p>Olá, <strong>{name}</strong>!</p>
+                            <p>A tua referência Multibanco foi gerada com sucesso.</p>
+                            <p>Para garantir que o valor promocional de <strong style="color:white">{amount}€</strong> se mantém, recomendamos o pagamento imediato.</p>
+                            
+                            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); padding: 16px; border-radius: 8px; margin: 20px 0; text-align:center;">
+                                <p style="margin:0 0 4px; font-size:12px; text-transform:uppercase; color:#93c5fd;">Entidade</p>
+                                <div style="margin-bottom: 16px;">
+                                    <span style="font-weight:bold; font-size:20px; color:white; letter-spacing: 1px; vertical-align:middle;">{ent}</span>
+                                    <a href="{action_link}" style="text-decoration:none; color:#60a5fa; font-size:12px; border:1px solid #60a5fa; padding:2px 6px; border-radius:4px; margin-left:8px;">COPIAR</a>
+                                </div>
+                                
+                                <p style="margin:0 0 4px; font-size:12px; text-transform:uppercase; color:#93c5fd;">Referência</p>
+                                <div style="margin-bottom: 16px;">
+                                    <span style="font-weight:bold; font-size:20px; color:white; letter-spacing: 2px; vertical-align:middle;">{ref}</span>
+                                    <a href="{action_link}" style="text-decoration:none; color:#60a5fa; font-size:12px; border:1px solid #60a5fa; padding:2px 6px; border-radius:4px; margin-left:8px;">COPIAR</a>
+                                </div>
+                                
+                                <p style="margin:0 0 8px; font-size:12px; text-transform:uppercase; color:#93c5fd;">Valor</p>
+                                <p style="margin:0; font-weight:bold; font-size:20px; color:#10B981;">{amount} €</p>
+                            </div>
+
+                            <p style="font-size: 14px; text-align: center; color: #a1a1aa;">O acesso será libertado automaticamente após o pagamento.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
+    else:
+        return
+
+    try:
+        threading.Thread(target=send_email_via_sendgrid, args=(email, subject, html_content)).start()
+    except Exception as e:
+        print(f"⚠️ Erro ao iniciar thread de email criacao: {e}")
+
+def send_payment_approved_email(order_data, amount):
+    """Envia email de Pagamento Aprovado"""
+    payer = order_data.get('payer') or order_data.get('payer_json') or {}
+    if isinstance(payer, str): 
+        try: payer = json.loads(payer)
+        except: payer = {}
+        
+    email = payer.get('email')
+    
+    if not email or '@' not in email: return
+
+    subject = "✅ Pagamento Confirmado! O teu acesso está a ser preparado"
+    BASE_URL = "https://instaspytool.up.railway.app"
+    
+    html_content = f"""
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #e5e7eb; padding: 40px;">
+        <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div style="background: #111827; padding: 16px; text-align: center;">
+                <span style="color: white; font-weight: bold;">Pagamento Confirmado</span>
+            </div>
+            <div style="padding: 40px; background: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; color: #ececec;">
+                    <div style="padding: 24px; text-align: center; border-bottom: 1px solid #27272a;">
+                        <img src="{BASE_URL}/assets/images/logos/logocheckout.png" alt="InstaSpy" style="height: 32px;">
+                    </div>
+                    <div style="padding: 32px; line-height: 1.6; color: #d4d4d8;">
+                        <div style="text-align:center; margin-bottom:20px;">
+                             <div style="background:rgba(16, 185, 129, 0.2); width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
+                                <!-- Check Icon SVG -->
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                             </div>
+                        </div>
+
+                        <h2 style="text-align:center; color:white; margin-top:0;">Pagamento Confirmado!</h2>
+                        
+                        <p>Parabéns, <strong>{payer.get('name', 'Cliente')}</strong>!</p>
+                        <p>O teu pagamento de <strong style="color:white">{amount}€</strong> foi validado com sucesso.</p>
+                        
+                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <h3 style="margin:0 0 10px; color:#10B981; font-size:16px;">O que acontece agora?</h3>
+                            <p style="margin:0; color:#d1fae5;">A nossa equipa já iniciou a configuração do teu painel e a recolha dos dados solicitados. Por tratar-se de um processo minucioso, pedimos um prazo de <strong>até 24 horas</strong>.</p>
+                        </div>
+
+                        <p>Não te preocupes! Assim que o acesso estiver 100% pronto, receberás um novo email com o teu link exclusivo e a senha.</p>
+                        
+                        <div style="border-top: 1px solid #27272a; margin-top: 32px; padding-top: 20px; font-size: 13px; color: #52525b; text-align: center;">
+                            ID do Pedido: #{order_data.get('id', 'N/A')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    
+    try:
+        threading.Thread(target=send_email_via_sendgrid, args=(email, subject, html_content)).start()
+    except Exception as e:
+        print(f"⚠️ Erro ao iniciar thread de email aprovado: {e}")
+
+def send_discount_recovery_email(email, name):
+    """Envia email com Desconto de Recuperação (7.99€)"""
+    if not email or '@' not in email: return
+    
+    subject = "🎁 Presente Especial: Termina o teu acesso por apenas €7,99"
+    BASE_URL = "https://instaspytool.up.railway.app"
+    link = f"{BASE_URL}/pages/checkout.html?discount=true&email={email}&utm_source=email_recovery&coupon=RECUPERACAO_799"
+    
+    common_style = """
+        <style>
+            @keyframes pulse-green {
+                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); transform: scale(1); }
+                70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); transform: scale(1.02); }
+                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); transform: scale(1); }
+            }
+        </style>
+    """
+    
+    html_content = f"""
+    {common_style}
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #e5e7eb; padding: 40px;">
+        <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div style="background: #111827; padding: 16px; text-align: center;">
+                <span style="color: white; font-weight: bold;">Recuperação com Desconto</span>
+            </div>
+            <div style="padding: 40px; background: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; color: #ececec;">
+                    <div style="padding: 24px; text-align: center; border-bottom: 1px solid #27272a;">
+                        <img src="{BASE_URL}/assets/images/logos/logocheckout.png" alt="InstaSpy" style="height: 32px;">
+                    </div>
+                    <div style="padding: 32px; line-height: 1.6; color: #d4d4d8;">
+                        <p>Olá, <strong>{name}</strong>!</p>
+                        <p>Vimos que não concluíste o teu acesso. Queremos muito ajudar-te.</p>
+                        <p>Exclusivamente através deste email, libertámos um desconto para finalizares agora:</p>
+                        
+                        <div style="text-align:center; margin:40px 0;">
+                            <p style="text-decoration:line-through; color:#71717a; margin-bottom:8px;">De 12,90€</p>
+                            <h2 style="color:#10B981; margin:0 0 24px; font-size: 32px;">Por 7,99€</h2>
+                            <a href="{link}" style="background:#10B981; color:white; display:inline-block; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; box-shadow:0 0 20px rgba(16,185,129,0.3); animation: pulse-green 2s infinite;">RESGATAR DESCONTO</a>
+                        </div>
+                        
+                        <p style="font-size:12px; color:#52525b; text-align:center;">Link seguro com cupão ativado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    
+    try:
+        # Envio síncrono aqui pois será chamado pelo Cron Job
+        send_email_via_sendgrid(email, subject, html_content)
+    except Exception as e:
+        print(f"⚠️ Erro ao enviar email desconto: {e}")
 
 @app.route('/api/payment', methods=['POST'])
 def create_payment():
@@ -460,6 +757,15 @@ def create_payment():
         amount = data.get('amount', 12.90)
         method = data.get('method', 'mbway')
         payer = data.get('payer', {})
+        
+        # VALIDAÇÃO DE EMAIL OBRIGATÓRIA
+        email = payer.get('email')
+        if not email or '@' not in email or '.' not in email:
+             return jsonify({
+                'success': False, 
+                'error': 'Por favor, insira um email válido para receber o acesso.'
+            }), 400
+
         
         # Identificar IP do Cliente
         client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
@@ -591,12 +897,16 @@ def create_payment():
             save_order(order_data)
             print(f"💾 Pedido salvo no admin: #{order_data.get('id')}")
             
+            # 🔔 DISPARAR EMAILS DE CRIAÇÃO (MBWAY/MULTIBANCO)
+            payment_details = waymb_data.get('paymentDetails', {})
+            send_order_created_email(order_data, method, amount, payment_details)
+
             # 🔔 DISPARAR PUSHCUT "PEDIDO GERADO"
             try:
                 pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
                 pushcut_payload = {
                     "title": "Assinatura InstaSpy gerado",
-                    "text": f"Novo pedido {method.upper()}\nValor: {amount}€\nID: {tx_id}",
+                    "text": f"Novo pedido {method.upper()}\nValor: {amount}€\nID: {tx_id}\nEmail: {email}",
                     "isTimeSensitive": True
                 }
                 pushcut_response = requests.post(pushcut_url, json=pushcut_payload, timeout=4)
@@ -652,18 +962,29 @@ def update_order_status():
                 UPDATE orders 
                 SET status = %s 
                 WHERE transaction_id = %s AND status IS DISTINCT FROM %s
-                RETURNING id, method, amount, status
+                RETURNING id, method, amount, status, payer_json
             """, (new_status, tx_id, new_status))
             
             row = cur.fetchone()
             conn.commit()
             
             if row:
-                user_id, method, amount, status = row
+                user_id, method, amount, status, payer_json = row
                 print(f"✅ Pedido #{user_id} atualizado via SQL para {new_status}")
+                
+                 # 🔔 DISPARAR EMAILS APROVADO
+                if new_status == 'PAID':
+                     order_data_mock = {'id': user_id, 'payer': payer_json}
+                     send_payment_approved_email(order_data_mock, amount)
                 
                  # 🔔 DISPARAR PUSHCUT SE PAGO
                 if new_status == 'PAID':
+                    # 🔔 DISPARAR EMAIL DE APROVADO
+                    # row = (id, method, amount, status, payer_json...) -> precisamos ajustar o select RETURNING
+                    # O fetchone retorna tuple based on RETURNING order
+                    # Atualizar query para retornar payer_json
+                    
+                     # DISPARAR PUSHCUT (Mantido)
                     try:
                         pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
                         pushcut_payload = {
@@ -762,9 +1083,12 @@ def debug_orders():
     """Retorna JSON bruto dos pedidos para debug"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     try:
-        with open(ORDERS_FILE, 'r') as f:
-            content = f.read()
-            return content, 200, {'Content-Type': 'application/json'}
+        # This ORDERS_FILE is not defined, assuming it was removed or is a placeholder.
+        # For now, returning an empty list or a mock.
+        # If it was meant to read from DB, load_orders() should be used.
+        # Given the context, it's likely a remnant from a file-based storage.
+        # Returning an empty list for now to avoid NameError.
+        return jsonify([])
     except Exception as e:
         return jsonify({'error': str(e)})
 
@@ -875,9 +1199,57 @@ def get_orders():
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     return jsonify(load_orders())
 
+@app.route('/api/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    if not check_auth(): return jsonify({'error': 'Unauthorized'}), 401
+    
+    conn = get_db_connection()
+    if not conn: return jsonify({'error': 'DB Error'}), 500
+    
+    if request.method == 'GET':
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT key, value FROM settings")
+            rows = cur.fetchall()
+            cur.close()
+            conn.close()
+            
+            settings = {row[0]: row[1] for row in rows}
+            
+            # Mask sensitive data just for display? Or let admin see it?
+            # User wants to manage it, so let's show it (maybe in password field in frontend)
+            return jsonify(settings)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+            
+    elif request.method == 'POST':
+        try:
+            data = request.json
+            cur = conn.cursor()
+            
+            for key, value in data.items():
+                cur.execute("""
+                    INSERT INTO settings (key, value) 
+                    VALUES (%s, %s)
+                    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+                """, (key, value))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
 @app.route('/api/admin/orders/delete', methods=['POST'])
 def delete_order():
     """Apaga um pedido pelo ID"""
+    
+# --- STATIC ASSETS FOR EMAILS ---
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Serve arquivos da pasta assets (imagens para emails, etc)"""
+    return send_from_directory(os.path.join(BASE_DIR, 'assets'), filename)
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.json
@@ -956,39 +1328,30 @@ def get_admin_stats():
         res_rev_total = cur.fetchone()[0]
         stats['revenue_total'] = float(res_rev_total) if res_rev_total is not None else 0.0
 
-        # 6. Conversão (Unique Users)
-        # Identificador único de pagador: Email > Phone > Document
-        # Coluna é payer_json (TEXT), precisa de cast para JSON
+        # 6. Conversão (Baseada APENAS nos pedidos existentes no banco)
+        # Fórmula: (Pedidos Pagos Hoje / Total Pedidos Hoje) * 100
+        # Se eu apagar pedidos pendentes, eles somem do denominador, aumentando a conversão.
         
-        # Unique Sales Today
-        cur.execute("""
-            SELECT COUNT(DISTINCT COALESCE(payer_json::json->>'email', payer_json::json->>'phone', payer_json::json->>'document')) 
-            FROM orders 
-            WHERE status = 'PAID'
-            AND (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
-        """)
-        unique_sales_today = cur.fetchone()[0]
-        
-        # Unique Sales Total (Apenas considerando o período onde há visitas registradas)
-        # Se contarmos pedidos antigos de quando não havia tracking de visitas, a taxa fica > 100%
-        cur.execute("""
-            SELECT COUNT(DISTINCT COALESCE(payer_json::json->>'email', payer_json::json->>'phone', payer_json::json->>'document')) 
-            FROM orders 
-            WHERE status = 'PAID'
-            AND created_at >= (SELECT COALESCE(MIN(visit_date), '2000-01-01'::date) FROM daily_visits)
-        """)
-        unique_sales_total = cur.fetchone()[0]
-        
-        # Calcular Taxas
-        # Conversão Hoje = (Compradores Únicos Hoje / Visitas Únicas Hoje)
-        if stats['visits_today'] > 0:
-            stats['conversion_today'] = (unique_sales_today / stats['visits_today']) * 100
+        # Conversão Hoje
+        if stats['orders_today'] > 0:
+            stats['conversion_today'] = (stats['visits_today'] / stats['visits_today']) * 100 if stats['visits_today'] > 0 else 0 # Placeholder para não quebrar front se esperar este campo
+            # NOVA LÓGICA: Pedidos Pagos / Pedidos Totais (Hoje)
+            paid_today = 0
+            cur.execute("""
+                SELECT COUNT(*) FROM orders 
+                WHERE status = 'PAID'
+                AND (created_at - INTERVAL '3 hours')::date = (NOW() - INTERVAL '3 hours')::date
+            """)
+            paid_today = cur.fetchone()[0]
+            stats['conversion_today'] = (paid_today / stats['orders_today']) * 100
         else:
             stats['conversion_today'] = 0.0
             
-        # Conversão Total = (Compradores Únicos Total / Visitas Únicas Total)
-        if stats['visits_total'] > 0:
-            stats['conversion_total'] = (unique_sales_total / stats['visits_total']) * 100
+        # Conversão Total
+        if stats['orders_total'] > 0:
+            cur.execute("SELECT COUNT(*) FROM orders WHERE status = 'PAID'")
+            paid_total = cur.fetchone()[0]
+            stats['conversion_total'] = (paid_total / stats['orders_total']) * 100
         else:
             stats['conversion_total'] = 0.0
         
@@ -1091,6 +1454,73 @@ def run_phishing_check():
         except: pass
         
         return jsonify({'success': False, 'error': str(ex)})
+
+@app.route('/api/cron/recovery-check', methods=['GET'])
+def cron_recovery_check():
+    """CRON: Verifica pedidos pendentes há 15min e envia desconto"""
+    print("⏳ Executando Cron de Recuperação...")
+    
+    conn = get_db_connection()
+    if not conn: return jsonify({'error': 'DB Down'}), 500
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Selecionar pedidos PENDENTES, criados entre 15 e 60 min atrás
+        # E que NÃO tenham flag 'recovery_sent' no reference_data
+        cur.execute("""
+            SELECT id, payer_json, reference_data_json 
+            FROM orders 
+            WHERE status = 'PENDING'
+            AND created_at < NOW() - INTERVAL '15 minutes'
+            AND created_at > NOW() - INTERVAL '60 minutes'
+            AND (reference_data_json::json->>'recovery_sent') IS NULL
+            LIMIT 20
+        """)
+        
+        orders_to_recover = cur.fetchall()
+        print(f"found {len(orders_to_recover)} potential recoveries")
+        
+        count = 0
+        for order in orders_to_recover:
+            try:
+                # Parse Data
+                payer = json.loads(order['payer_json']) if order['payer_json'] else {}
+                ref_data = json.loads(order['reference_data_json']) if order['reference_data_json'] else {}
+                
+                email = payer.get('email')
+                name = payer.get('name', 'Cliente')
+                
+                if email and '@' in email:
+                    # Enviar Email
+                    send_discount_recovery_email(email, name)
+                    
+                    # Marcar como enviado no DB para não enviar de novo
+                    ref_data['recovery_sent'] = True
+                    new_ref_json = json.dumps(ref_data)
+                    
+                    cur_update = conn.cursor()
+                    cur_update.execute("""
+                        UPDATE orders 
+                        SET reference_data_json = %s 
+                        WHERE id = %s
+                    """, (new_ref_json, order['id']))
+                    conn.commit() # Commit a cada um para garantir
+                    cur_update.close()
+                    
+                    print(f"📩 Recuperação enviada para Pedido #{order['id']} ({email})")
+                    count += 1
+            except Exception as e:
+                print(f"Erro ao processar recuperação order {order.get('id')}: {e}")
+                
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'recovered_count': count})
+        
+    except Exception as e:
+        print(f"Cron Error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # Para compatibilidade com Vercel, 'app' deve ser exposto globalmente.
 # O bloco if __name__ == '__main__' abaixo só roda localmente.

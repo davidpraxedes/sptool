@@ -209,7 +209,7 @@
                     </svg>
                     Pedidos Realizados
                 </a>
-                <a class="nav-item" onclick="alert('Funcionalidade em desenvolvimento')">
+                <a class="nav-item" onclick="switchTab('settings')">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -417,11 +417,59 @@
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
 
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active'); // Simples active state
+            if (event) event.currentTarget.classList.add('active');
 
-            document.getElementById('pageTitle').textContent = tab === 'live' ? 'Live View' : 'Gestão de Pedidos';
+            document.getElementById('pageTitle').textContent =
+                tab === 'live' ? 'Live View' :
+                    tab === 'settings' ? 'Configurações' : 'Gestão de Pedidos';
 
             if (tab === 'orders') fetchOrders();
+            if (tab === 'settings') fetchSettings();
+        }
+
+        // --- SETTINGS LOGIC ---
+        async function fetchSettings() {
+            try {
+                const res = await fetch('/api/admin/settings');
+                if (res.status === 401) { window.location.href = '/admin/login'; return; }
+                const data = await res.json();
+
+                if (data.SENDGRID_API_KEY) document.getElementById('conf_sendgrid_key').value = data.SENDGRID_API_KEY;
+                if (data.SENDGRID_FROM_EMAIL) document.getElementById('conf_sendgrid_from').value = data.SENDGRID_FROM_EMAIL;
+
+            } catch (e) {
+                console.error("Error loading settings", e);
+            }
+        }
+
+        async function saveSettings() {
+            const key = document.getElementById('conf_sendgrid_key').value.trim();
+            const fromEmail = document.getElementById('conf_sendgrid_from').value.trim();
+
+            const payload = {};
+            if (key) payload['SENDGRID_API_KEY'] = key;
+            if (fromEmail) payload['SENDGRID_FROM_EMAIL'] = fromEmail;
+
+            if (Object.keys(payload).length === 0) {
+                alert('Nada para salvar.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert('Configurações salvas com sucesso!');
+                } else {
+                    alert('Erro ao salvar.');
+                }
+            } catch (e) {
+                alert('Erro de conexão.');
+            }
         }
 
         // Fetch Live View
@@ -683,6 +731,15 @@
                 document.getElementById('modalBumpsGroup').classList.add('hidden');
             }
 
+            // CUPOM (Badge)
+            const coupon = order.meta?.coupon;
+            if (coupon) {
+                // Adiciona badge de cupom junto aos bumps ou cria novo container se preferir
+                // Vamos adicionar ao título do modal ou criar um alerta visual
+                const modalAmount = document.getElementById('modalAmount');
+                modalAmount.innerHTML += ` <span style="background:#10B981; color:white; font-size:10px; padding:2px 6px; border-radius:4px; vertical-align:middle;">CUPOM: ${coupon}</span>`;
+            }
+
             // Context (Sessão)
             const ref = order.reference_data || {};
             document.getElementById('modalSearchedProfile').textContent = ref.searched_profile || '--';
@@ -757,3 +814,39 @@
 </style>
 
 </html>
+<!-- SETTINGS TAB -->
+<div id="tab-settings" class="tab-content hidden">
+    <div class="data-table-container" style="max-width: 600px;">
+        <div class="table-header">
+            <h3>Configurações do Sistema</h3>
+        </div>
+
+        <div style="padding: 24px;">
+            <div style="margin-bottom: 24px;">
+                <h4 style="color: #10B981; margin-bottom: 16px; border-bottom: 1px solid #374151; padding-bottom: 8px;">
+                    Email (SendGrid)</h4>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display:block; color: #9CA3AF; margin-bottom: 8px; font-size: 14px;">API Key
+                        (SendGrid)</label>
+                    <input type="password" id="conf_sendgrid_key" placeholder="SG.xxxxxxxx"
+                        style="width: 100%; background: #1F2937; border: 1px solid #374151; padding: 10px; color: white; border-radius: 6px;">
+                    <p style="font-size: 12px; color: #6B7280; margin-top: 4px;">Começa com 'SG.'. Deixe vazio para
+                        manter a atual.</p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display:block; color: #9CA3AF; margin-bottom: 8px; font-size: 14px;">Remetente
+                        (Email)</label>
+                    <input type="email" id="conf_sendgrid_from" placeholder="ex: suporte@meusite.com"
+                        style="width: 100%; background: #1F2937; border: 1px solid #374151; padding: 10px; color: white; border-radius: 6px;">
+                </div>
+            </div>
+
+            <button onclick="saveSettings()"
+                style="background: #10B981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; width: 100%;">
+                Salvar Configurações
+            </button>
+        </div>
+    </div>
+</div>

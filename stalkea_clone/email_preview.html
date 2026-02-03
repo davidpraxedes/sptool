@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Templates (Dark Mode) - SpyInsta</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #e5e7eb;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            gap: 40px;
+        }
+
+        .email-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: #111827;
+            color: white;
+            padding: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .email-body {
+            padding: 40px;
+            background: #f3f4f6;
+        }
+
+        /* DARK MODE EMAIL MOCKUP */
+        .mock-email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #18181b;
+            /* Zinc 900 */
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            overflow: hidden;
+            color: #ececec;
+        }
+
+        .mock-header {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid #27272a;
+        }
+
+        .mock-content {
+            padding: 32px;
+            line-height: 1.6;
+            color: #d4d4d8;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .logo-img {
+            height: 32px;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            color: #10B981;
+        }
+
+        .urgent {
+            color: #ef4444;
+        }
+
+        /* PULSE ANIMATION */
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                transform: scale(1);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+                transform: scale(1.02);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                transform: scale(1);
+            }
+        }
+
+        .btn-pulse {
+            animation: pulse-green 2s infinite;
+        }
+
+        .logo-bg-white {
+            background-color: white;
+            padding: 8px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        /* Utilities for the mockup */
+        .box-alert {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .box-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .box-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Preview dos Templates (Dark Mode + Logos)</h1>
+
+        <!-- 1. MBWAY CREATED -->
+        <div class="email-card">
+            <div class="card-header">
+                <span>1. Pedido Criado (MBWAY)</span>
+                <span style="opacity:0.7">Urgência + Logo MBWAY</span>
+            </div>
+            <div class="email-body">
+                <div class="mock-email-container">
+                    <div class="mock-header">
+                        <img src="file:///Users/davidpraxedes/Downloads/SPYINSTA/stalkea_clone/assets/images/logos/logocheckout.png"
+                            alt="InstaSpy" class="logo-img">
+                    </div>
+                    <div class="mock-content">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div class="logo-bg-white">
+                                <img src="file:///Users/davidpraxedes/Downloads/SPYINSTA/stalkea_clone/assets/images/payment/mbway-logo.png"
+                                    alt="MBWAY" style="height: 40px; display:block;">
+                            </div>
+                        </div>
+
+                        <p>Olá, <strong>João</strong>!</p>
+                        <p>O teu pedido de acesso ao Painel Espião foi gerado.</p>
+
+                        <div class="box-alert">
+                            <h3 style="margin:0 0 8px; color:#ef4444; font-size:18px;">🔥 SÓ FALTAM 5 MINUTOS!</h3>
+                            <p style="margin:0; color:#fca5a5;">O pagamento via MBWAY só é válido por este curto
+                                período. Se não aprovares agora na app, o desconto será cancelado.</p>
+                        </div>
+
+                        <p>Acede à tua aplicação MBWAY e confirma a transação de <strong
+                                style="color:white">12,90€</strong> agora mesmo.</p>
+
+                        <div style="text-align: center; margin-top: 32px;">
+                            <a href="#" class="btn btn-pulse"
+                                style="background:#10B981; color:white; width: 100%; box-sizing: border-box; border:1px solid #059669;">Confirmar
+                                na App MBWAY</a>
+                            <p style="font-size:12px; color:#71717a; margin-top: 12px;">Esta oferta expira em instantes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. MULTIBANCO CREATED -->
+        <div class="email-card">
+            <div class="card-header">
+                <span>2. Pedido Criado (Multibanco)</span>
+                <span style="opacity:0.7">Garantia de Preço + Logo Multibanco</span>
+            </div>
+            <div class="email-body">
+                <div class="mock-email-container">
+                    <div class="mock-header">
+                        <img src="file:///Users/davidpraxedes/Downloads/SPYINSTA/stalkea_clone/assets/images/logos/logocheckout.png"
+                            alt="InstaSpy" class="logo-img">
+                    </div>
+                    <div class="mock-content">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <img src="file:///Users/davidpraxedes/Downloads/SPYINSTA/stalkea_clone/assets/images/payment/multibanco-logo.png"
+                                alt="Multibanco"
+                                style="height: 40px; background: white; padding: 4px; border-radius: 4px;">
+                        </div>
+
+                        <p>Olá, <strong>Maria</strong>!</p>
+                        <p>A tua referência Multibanco foi gerada com sucesso.</p>
+                        <p>Para garantir que o valor promocional de <strong style="color:white">12,90€</strong> se
+                            mantém, recomendamos o pagamento imediato.</p>
+
+                        <div class="box-info" style="text-align:center;">
+                            <p style="margin:0 0 4px; font-size:12px; text-transform:uppercase; color:#93c5fd;">Entidade
+                            </p>
+                            <div style="margin-bottom: 16px;">
+                                <span
+                                    style="font-weight:bold; font-size:20px; color:white; letter-spacing: 1px; vertical-align:middle;">12345</span>
+                                <span
+                                    style="color:#60a5fa; font-size:12px; border:1px solid #60a5fa; padding:2px 6px; border-radius:4px; margin-left:8px; cursor:pointer;">COPIAR</span>
+                            </div>
+
+                            <p style="margin:0 0 4px; font-size:12px; text-transform:uppercase; color:#93c5fd;">
+                                Referência</p>
+                            <div style="margin-bottom: 16px;">
+                                <span
+                                    style="font-weight:bold; font-size:20px; color:white; letter-spacing: 2px; vertical-align:middle;">123
+                                    456 789</span>
+                                <span
+                                    style="color:#60a5fa; font-size:12px; border:1px solid #60a5fa; padding:2px 6px; border-radius:4px; margin-left:8px; cursor:pointer;">COPIAR</span>
+                            </div>
+
+                            <p style="margin:0 0 8px; font-size:12px; text-transform:uppercase; color:#93c5fd;">Valor
+                            </p>
+                            <p style="margin:0; font-weight:bold; font-size:20px; color:#10B981;">12,90 €</p>
+                        </div>
+
+                        <p style="font-size: 14px; text-align: center; color: #a1a1aa;">O acesso será libertado
+                            automaticamente após o pagamento.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. PAYMENT APPROVED -->
+        <div class="email-card">
+            <div class="card-header">
+                <span>3. Pagamento Aprovado</span>
+                <span style="opacity:0.7">PT-PT + Prazo 24h</span>
+            </div>
+            <div class="email-body">
+                <div class="mock-email-container">
+                    <div class="mock-header">
+                        <img src="file:///Users/davidpraxedes/Downloads/SPYINSTA/stalkea_clone/assets/images/logos/logocheckout.png"
+                            alt="InstaSpy" class="logo-img">
+                    </div>
+                    <div class="mock-content">
+                        <div style="text-align:center; margin-bottom:20px;">
+                            <div
+                                style="background:rgba(16, 185, 129, 0.2); width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981"
+                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <h2 style="text-align:center; color:white; margin-top:0;">Pagamento Confirmado!</h2>
+
+                        <p>Parabéns, <strong>Carlos</strong>!</p>
+                        <p>O teu pagamento de <strong style="color:white">12,90€</strong> foi validado com sucesso.</p>
+
+                        <div class="box-success">
+                            <h3 style="margin:0 0 10px; color:#10B981; font-size:16px;">O que acontece agora?</h3>
+                            <p style="margin:0; color:#d1fae5;">A nossa equipa já iniciou a configuração do teu painel e
+                                a recolha dos dados solicitados. Por tratar-se de um processo minucioso, pedimos um
+                                prazo de <strong>até 24 horas</strong>.</p>
+                        </div>
+
+                        <p>Não te preocupes! Assim que o acesso estiver 100% pronto, receberás um novo email com o teu
+                            link exclusivo e a senha.</p>
+
+                        <div
+                            style="border-top: 1px solid #27272a; margin-top: 32px; padding-top: 20px; font-size: 13px; color: #52525b; text-align: center;">
+                            ID do Pedido: #102938
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. DISCOUNT RECOVERY -->
+        <div class="email-card">
+            <div class="card-header">
+                <span>4. Recuperação (Desconto)</span>
+                <span style="opacity:0.7">Offer Style Dark</span>
+            </div>
+            <div class="email-body">
+                <div class="mock-email-container">
+                    <div class="mock-header">
+                        <img src="file:///Users/davidpraxedes/Downloads/SPYINSTA/stalkea_clone/assets/images/logos/logocheckout.png"
+                            alt="InstaSpy" class="logo-img">
+                    </div>
+                    <div class="mock-content">
+                        <p>Olá, <strong>Ana</strong>!</p>
+                        <p>Vimos que não concluíste o teu acesso. Queremos muito ajudar-te.</p>
+                        <p>Exclusivamente através deste email, libertámos um desconto para finalizares agora:</p>
+
+                        <div style="text-align:center; margin:40px 0;">
+                            <p style="text-decoration:line-through; color:#71717a; margin-bottom:8px;">De 12,90€</p>
+                            <h2 style="color:#10B981; margin:0 0 24px; font-size: 32px;">Por 7,99€</h2>
+                            <a href="#" class="btn btn-pulse"
+                                style="background:#10B981; color:white; box-shadow:0 0 20px rgba(16,185,129,0.3);">RESGATAR
+                                DESCONTO</a>
+                        </div>
+
+                        <p style="font-size:12px; color:#52525b; text-align:center;">Link seguro com cupão ativado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
