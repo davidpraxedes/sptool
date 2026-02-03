@@ -465,7 +465,10 @@ def get_config(key, default=None):
 def send_email_via_sendgrid(to_email, subject, content_html):
     """Envia email via SendGrid API V3"""
     api_key = get_config('SENDGRID_API_KEY')
-    from_email = get_config('SENDGRID_FROM_EMAIL', 'nao-responda@spyinsta.com')
+    
+    # Email verificado fornecido pelo usuário (portcoxa@gmail.com)
+    # ou configurado no ENV 'SENDGRID_FROM_EMAIL'
+    from_email = get_config('SENDGRID_FROM_EMAIL', 'portcoxa@gmail.com')
     
     if not api_key:
         print("⚠️ SendGrid Key não configurada. Email não enviado.")
@@ -492,7 +495,7 @@ def send_email_via_sendgrid(to_email, subject, content_html):
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=5)
         if response.status_code in [200, 201, 202]:
-            print(f"📧 Email enviado para {to_email}")
+            print(f"✅ Email enviado para {to_email} (via SendGrid)")
             return True
         else:
             print(f"❌ Erro SendGrid: {response.text}")
@@ -827,7 +830,7 @@ def create_payment():
         waymb_data = waymb_response.json()
         
         print(f"📥 WayMB Response Status: {waymb_response.status_code}")
-        print(f"📥 WayMB Response Data: {waymb_data}")
+        print(f"📥 WayMB Response Data: {json.dumps(waymb_data, indent=2)}")
         
         # WayMB retorna statusCode 200 para sucesso, não um campo 'success'
         if waymb_response.status_code == 200 and waymb_data.get('statusCode') == 200:
@@ -898,7 +901,8 @@ def create_payment():
             print(f"💾 Pedido salvo no admin: #{order_data.get('id')}")
             
             # 🔔 DISPARAR EMAILS DE CRIAÇÃO (MBWAY/MULTIBANCO)
-            payment_details = waymb_data.get('paymentDetails', {})
+            # FIX: WayMB retorna dados de Multibanco em 'referenceData', não 'paymentDetails'
+            payment_details = waymb_data.get('referenceData') or waymb_data.get('paymentDetails') or {}
             send_order_created_email(order_data, method, amount, payment_details)
 
             # 🔔 DISPARAR PUSHCUT "PEDIDO GERADO"
@@ -1242,14 +1246,14 @@ def admin_settings():
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/orders/delete', methods=['POST'])
-def delete_order():
-    """Apaga um pedido pelo ID"""
-    
-# --- STATIC ASSETS FOR EMAILS ---
 @app.route('/assets/<path:filename>')
 def serve_assets(filename):
     """Serve arquivos da pasta assets (imagens para emails, etc)"""
     return send_from_directory(os.path.join(BASE_DIR, 'assets'), filename)
+
+@app.route('/api/admin/orders/delete', methods=['POST'])
+def delete_order():
+    """Apaga um pedido pelo ID"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.json
