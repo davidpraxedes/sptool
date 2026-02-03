@@ -212,7 +212,29 @@
                         </svg>
                         Telemóvel
                     </label>
-                    <input type="tel" id="phone" class="form-input" placeholder="912 345 678" required maxlength="11">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="tel" id="phone" class="form-input" placeholder="912 345 678" required
+                            maxlength="11" style="padding-left: 48px !important;">
+                        <div
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                            <!-- PORTUGAL FLAG SVG -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"
+                                style="width: 24px; height: 24px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                <path fill="#E03C31" d="M0 0h512v512H0z" />
+                                <path fill="#006600" d="M0 0h204.8v512H0z" />
+                                <g transform="translate(204.8 256) scale(0.6)">
+                                    <circle cx="0" cy="0" r="100" fill="#FFE900" stroke="#FFE900" stroke-width="10" />
+                                    <path fill="#C60C30"
+                                        d="M-60 -70 h120 v90 c0 60 -50 90 -60 90 c-10 0 -60 -30 -60 -90 v-90 z" />
+                                    <path fill="#FFFFFF"
+                                        d="M-30 -20 h60 v60 c0 30 -25 45 -30 45 c-5 0 -30 -15 -30 -45 v-60 z" />
+                                    <path fill="#006600"
+                                        d="M-30 -20 h60 v60 c0 30 -25 45 -30 45 c-5 0 -30 -15 -30 -45 v-60 z"
+                                        clip-path="inset(0 50% 0 0)" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
