@@ -1591,7 +1591,7 @@ def run_phishing_check():
     global SITE_STATUS
     print("🕵️ Executando Phishing Check via Cron...")
     
-    target_url = "https://instaspytool.up.railway.app/" # PROD URL (ou use a URL da Vercel)
+    target_url = "https://sptool.vercel.app/" # UPDATED: Vercel URL
     
     try:
         r = requests.get(target_url, timeout=10)
@@ -1619,10 +1619,11 @@ def run_phishing_check():
             'last_check': time.time()
         }
         
-        # Disparar Pushcut
-        pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Assinatura%20InstaSpy%20gerado"
+        # Disparar Pushcut (Nome Diferente para Alertar)
+        # Usando 'ErrorAlert' para diferenciar de 'Assinatura Gerada'
+        pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/ErrorAlert" 
         payload = {
-            "title": "🚨 ALERTA DE PHISHING/DOWN",
+            "title": "🚨 ALERTA DE SERVIDOR/PHISHING",
             "text": f"O site apresentou problemas!\nErro: {str(ex)}\nVerifique IMEDIATAMENTE.",
             "isTimeSensitive": True
         }
