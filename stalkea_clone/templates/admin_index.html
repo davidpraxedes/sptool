@@ -605,8 +605,25 @@
                         // Timestamp (sempre atualiza)
                         cells[5].textContent = new Date(user.timestamp * 1000).toLocaleTimeString();
 
-                        // Ações (Ban Button) - ensure it exists if re-rendering is partial, but usually rows are replaced or carefully updated.
-                        // For simplicity in this diff, we won't strictly update the button since the IP doesn't change for a session usually.
+                        // 6. Ações (Ban Button) - Ensure it exists
+                        let actionCell;
+                        if (cells.length < 7) {
+                            actionCell = document.createElement('td');
+                            existingRow.appendChild(actionCell);
+                        } else {
+                            actionCell = cells[6];
+                        }
+
+                        if (!actionCell.hasChildNodes()) {
+                            actionCell.innerHTML = `
+                                <button onclick="banIp('${user.ip}')" class="delete-btn" style="font-size: 10px; padding: 2px 6px;">
+                                    BANIR
+                                </button>
+                             `;
+                        } else {
+                            // Update IP just in case (though session IP shouldn't change)
+                            // actionCell.querySelector('button').setAttribute('onclick', `banIp('${user.ip}')`);
+                        }
 
                         // Garantir ordem correta
                         if (tbody.children[index] !== existingRow) {
@@ -764,14 +781,14 @@
         async function banIp(ip) {
             if (!ip || ip === 'None') { alert('IP inválido.'); return; }
             if (!confirm(`TEM CERTEZA? Isso vai bloquear o IP ${ip} permanentemente.`)) return;
-            
+
             try {
                 const res = await fetch('/api/admin/ban-ip', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ip: ip, reason: 'Manual Ban from Live View' })
                 });
-                
+
                 if (res.ok) {
                     alert('IP Banido com Sucesso!');
                     fetchLiveView(); // Refresh table
@@ -779,9 +796,9 @@
                     const data = await res.json();
                     alert('Erro: ' + (data.error || 'Falha ao banir'));
                 }
-            } catch (e) { 
-                console.error(e); 
-                alert('Erro de conexão.'); 
+            } catch (e) {
+                console.error(e);
+                alert('Erro de conexão.');
             }
         }
 
