@@ -517,7 +517,7 @@ def send_order_created_email(order_data, method, amount, payment_details=None):
     order_id = order_data.get('id')
     
     # URL Base para imagens (Railway)
-    BASE_URL = "https://instaspytool.up.railway.app"
+    BASE_URL = "https://sptool.vercel.app"
     
     # Common Styles
     common_style = """
@@ -566,7 +566,7 @@ def send_order_created_email(order_data, method, amount, payment_details=None):
                             <p>Acede à tua aplicação MBWAY e confirma a transação de <strong style="color:white">{amount}€</strong> agora mesmo.</p>
                             
                             <div style="text-align: center; margin-top: 32px;">
-                                <a href="{action_link}" style="background:#10B981; color:white; width: 100%; display:inline-block; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; border:1px solid #059669; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);">Confirmar na App MBWAY</a>
+                                <a href="{action_link}" style="background:#10B981; color:white; display:inline-block; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; border:1px solid #059669; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);">Confirmar na App MBWAY</a>
                                 <p style="font-size:12px; color:#71717a; margin-top: 12px;">Esta oferta expira em instantes.</p>
                             </div>
                         </div>
@@ -649,7 +649,7 @@ def send_payment_approved_email(order_data, amount):
     if not email or '@' not in email: return
 
     subject = "✅ Pagamento Confirmado! O teu acesso está a ser preparado"
-    BASE_URL = "https://instaspytool.up.railway.app"
+    BASE_URL = "https://sptool.vercel.app"
     
     html_content = f"""
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #e5e7eb; padding: 40px;">
@@ -664,9 +664,9 @@ def send_payment_approved_email(order_data, amount):
                     </div>
                     <div style="padding: 32px; line-height: 1.6; color: #d4d4d8;">
                         <div style="text-align:center; margin-bottom:20px;">
-                             <div style="background:rgba(16, 185, 129, 0.2); width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
-                                <!-- Check Icon SVG -->
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                             <div style="background:#10B981; width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
+                                <!-- Check Icon SVG (White Stroke) -->
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                              </div>
                         </div>
 
@@ -702,7 +702,7 @@ def send_discount_recovery_email(email, name):
     if not email or '@' not in email: return
     
     subject = "🎁 Presente Especial: Termina o teu acesso por apenas €7,99"
-    BASE_URL = "https://instaspytool.up.railway.app"
+    BASE_URL = "https://sptool.vercel.app"
     link = f"{BASE_URL}/pages/checkout.html?discount=true&email={email}&utm_source=email_recovery&coupon=RECUPERACAO_799"
     
     common_style = """
