@@ -1726,3 +1726,5 @@ if __name__ == '__main__':
     print(f"🚀 SpyInsta Admin Server (Flask) running on port {port}")
     print("🔒 Admin Access: /admin (User: admin / Pass: Hornet600)")
     app.run(host='0.0.0.0', port=port, debug=True)
+
+# FORCE DEPLOY FIX SYNTAX
