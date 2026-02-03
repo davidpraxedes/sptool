@@ -1256,7 +1256,7 @@ def delete_order():
     """Apaga um pedido pelo ID"""
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
     
-    data = request.json
+    data = request.json or {}
     order_id = data.get('id')
     if not order_id: return jsonify({'error': 'Missing ID'}), 400
     
@@ -1270,6 +1270,7 @@ def delete_order():
             conn.close()
             return jsonify({'success': True})
         except Exception as e:
+            print(f"❌ Erro ao apagar pedido {order_id}: {e}")
             return jsonify({'error': str(e)}), 500
     return jsonify({'error': 'DB Error'}), 500
 
