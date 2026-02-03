@@ -466,9 +466,9 @@ def send_email_via_sendgrid(to_email, subject, content_html):
     """Envia email via SendGrid API V3"""
     api_key = get_config('SENDGRID_API_KEY')
     
-    # Email verificado fornecido pelo usuário (portcoxa@gmail.com)
+    # Email verificado fornecido pelo usuário
     # ou configurado no ENV 'SENDGRID_FROM_EMAIL'
-    from_email = get_config('SENDGRID_FROM_EMAIL', 'portcoxa@gmail.com')
+    from_email = get_config('SENDGRID_FROM_EMAIL', 'support@brasilconectasolucoes.shop')
     
     if not api_key:
         print("⚠️ SendGrid Key não configurada. Email não enviado.")
