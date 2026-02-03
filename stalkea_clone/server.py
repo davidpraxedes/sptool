@@ -1099,8 +1099,37 @@ def webhook_waymb():
         
         if not tx_id:
              return jsonify({'error': 'Missing ID'}), 400
+
+        # --- FILTRO PROZIS (OUTRO PROJETO) ---
+        # Se for 12.99, mandar notificação para outro Pushcut e parar.
+        try:
+            val_str = str(data.get('amount', '0')).replace(',', '.')
+            amount_val = float(val_str)
+            
+            # Comparar float com margem de erro
+            if abs(amount_val - 12.99) < 0.01:
+                print(f"👟 Detetada Venda PROZIS (12.99€) - ID: {tx_id}")
+                try:
+                    # URL Específica solicitada
+                    prozis_url = "https://api.pushcut.io/ZJtFapxqtRs_gYalo0G8Z/notifications/MinhaNotifica%C3%A7%C3%A3o"
+                    requests.post(prozis_url, json={
+                        "title": "👟 Venda Aprovada Prozis",
+                        "text": f"Valor: 12.99€\nID: {tx_id}",
+                        "isTimeSensitive": True
+                    }, timeout=4)
+                    print("📲 Pushcut PROZIS enviado com sucesso")
+                except Exception as ep:
+                    print(f"⚠️ Erro ao enviar Pushcut Prozis: {ep}")
+                    
+                # Retorna sucesso para o Gateway parar de tentar
+                return jsonify({'success': True, 'message': 'Prozis Handled'})
+        except Exception as e_filter:
+            print(f"⚠️ Erro no filtro de valor: {e_filter}")
+            # Continua o fluxo normal se der erro no parse
+            
+        # --- FIM FILTRO PROZIS ---
              
-        # Atualizar status no DB
+        # Atualizar status no DB (Fluxo SpyInsta)
         conn = get_db_connection()
         if conn:
             cur = conn.cursor()
