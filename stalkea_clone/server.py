@@ -28,7 +28,7 @@ def log_request_info():
         print(f"📡 Request: {request.method} {request.path} | Remote: {real_ip}")
         
         # --- IP BLOCKING ---
-        BLOCKED_IPS = ['31.22.201.99']
+        BLOCKED_IPS = ['31.22.201.99', '87.196.72.7']
         if real_ip in BLOCKED_IPS:
             print(f"🚫 BLOCKED IP ATTEMPT: {real_ip}")
             return "Acesso Negado / Access Denied", 403
