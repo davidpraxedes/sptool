@@ -7,14 +7,12 @@
     ],
     "routes": [
         {
+            "src": "/api/cron/recovery-check",
+            "dest": "stalkea_clone/server.py"
+        },
+        {
             "src": "/(.*)",
             "dest": "stalkea_clone/server.py"
-        }
-    ],
-    "crons": [
-        {
-            "path": "/api/cron/recovery-check",
-            "schedule": "*/15 * * * *"
         }
     ]
 }
