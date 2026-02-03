@@ -1135,6 +1135,19 @@ def webhook_waymb():
                     print(f"📧 Email de aprovação disparado para pedido {tx_id}")
                 except Exception as e:
                      print(f"⚠️ Erro ao disparar email aprovado no webhook: {e}")
+                     
+                # 🔔 DISPARAR PUSHCUT (Venda Aprovada)
+                try:
+                    pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
+                    pushcut_payload = {
+                        "title": "🟢💸 Venda Aprovada (Webhook) 🟢",
+                        "text": f"Pagamento confirmado via Webhook\nValor: {amount}€\nID: {tx_id}",
+                        "isTimeSensitive": True
+                    }
+                    requests.post(pushcut_url, json=pushcut_payload, timeout=4)
+                    print(f"📲 Pushcut 'Venda Aprovada' enviado via Webhook")
+                except Exception as e:
+                    print(f"⚠️ Erro ao enviar Pushcut de Venda (Webhook): {e}")
 
             else:
                 print(f"⚠️ Webhook: Pedido {tx_id} não encontrado no DB")
