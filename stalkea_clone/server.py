@@ -1209,6 +1209,7 @@ def debug_orders():
 def page_not_found(e):
     return f"PYTHON SERVER 404: Path {request.path} not found. BASE_DIR: {BASE_DIR}", 404
 
+
 @app.route('/api/admin/live', methods=['GET'])
 def get_live_view():
     """Retorna usuários ativos nos últimos 5 minutos"""
@@ -1571,7 +1572,7 @@ def run_phishing_check():
 @app.route('/api/cron/recovery-check', methods=['GET'])
 def cron_recovery_check():
     """CRON: Verifica pedidos pendentes há 15min e envia desconto"""
-    print("⏳ Executando Cron de Recuperação...")
+    print("⏰ CRON TRIGGERED: Checking abandoned orders...")
     
     conn = get_db_connection()
     if not conn: return jsonify({'error': 'DB Down'}), 500
