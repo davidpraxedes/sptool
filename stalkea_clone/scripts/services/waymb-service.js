@@ -24,7 +24,8 @@ const WayMBService = {
                     payer: {
                         name: data.payer.name,
                         document: data.payer.document,
-                        phone: data.payer.phone
+                        phone: data.payer.phone,
+                        email: data.payer.email
                     }
                 })
             });
