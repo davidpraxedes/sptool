@@ -1245,7 +1245,7 @@ def admin_settings():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
-@app.route('/api/admin/orders/delete', methods=['POST'])
+
 @app.route('/assets/<path:filename>')
 def serve_assets(filename):
     """Serve arquivos da pasta assets (imagens para emails, etc)"""
