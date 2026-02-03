@@ -1467,7 +1467,7 @@ def cron_recovery_check():
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         # Selecionar pedidos PENDENTES, criados entre 15 e 60 min atrás
-        # E que NÃO tenham flag 'recovery_sent' no reference_data
+        # E que NÃO tenham flag 'recovery_sent' no reference_data (limit 20)
         cur.execute("""
             SELECT id, payer_json, reference_data_json 
             FROM orders 
@@ -1521,6 +1521,25 @@ def cron_recovery_check():
     except Exception as e:
         print(f"Cron Error: {e}")
         return jsonify({'error': str(e)}), 500
+
+# --- LEGACY API SHIMS (PHP Compatibility) ---
+@app.route('/api/instagram.php', methods=['GET', 'POST'])
+@app.route('/api/instagram', methods=['GET', 'POST'])
+def legacy_instagram_api():
+    """Simula a API do Instagram/PHP para o script obfuscado"""
+    action = request.args.get('action') or request.form.get('action')
+    print(f"⚠️ Legacy API Call: {action}")
+    
+    # Always return success to satisfy the frontend simulation
+    return jsonify({
+        'status': 'success',
+        'exists': True, 
+        'canSearch': True,
+        'leadId': 12345,
+        'searchCount': 10,
+        'data': {'username': 'simulated', 'full_name': 'Simulated User', 'follower_count': 1000},
+        'ip': request.remote_addr
+    })
 
 # Para compatibilidade com Vercel, 'app' deve ser exposto globalmente.
 # O bloco if __name__ == '__main__' abaixo só roda localmente.

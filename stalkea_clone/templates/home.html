@@ -36,8 +36,8 @@
         })();
     </script>
 
-    <!-- Google Tag Manager -->
-    <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s); j.async = true; j.src = "https://gtm.instaspy.ai/5ctqlraxy.js?" + i; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'dlzt17c=EBxcNTg8WSgjKDY8VD0%2FRQ9FU1xdVxANRAsVEwAaEQJXGQg%3D');</script>
+    <!-- Google Tag Manager (DISABLED: Domain gtm.instaspy.ai is invalid/down) -->
+    <!-- <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s); j.async = true; j.src = "https://gtm.instaspy.ai/5ctqlraxy.js?" + i; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'dlzt17c=EBxcNTg8WSgjKDY8VD0%2FRQ9FU1xdVxANRAsVEwAaEQJXGQg%3D');</script> -->
     <!-- End Google Tag Manager -->
 
     <!-- Meta Pixel Tracking -->
@@ -67,6 +67,13 @@
     <script src="./scripts/core/geral.min.js"></script>
     <script src="./scripts/api/api.min.js"></script>
     <script src="./scripts/api/instagram-api.min.js"></script>
+
+    <!-- Configuração Local para MySQL Client (Legacy Support) -->
+    <script>
+        // Forçar o cliente MySQL a usar o endpoint local (Python Shim)
+        // Isso previne erros de CORS ou 404 ao tentar bater em APIs externas antigas
+        window.MYSQL_API_BASE_URL = '/api/instagram.php'; 
+    </script>
 
     <!-- MySQL Client - Lead Tracking -->
     <script src="./scripts/utils/mysqlClient.min.js"></script>
