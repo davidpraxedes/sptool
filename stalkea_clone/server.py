@@ -1367,13 +1367,7 @@ def ban_ip():
         except Exception as e:
              return jsonify({'error': str(e)}), 500
     return jsonify({'error': 'DB Connection Failed'}), 500
-             cur.execute("TRUNCATE active_sessions")
-             conn.commit()
-             cur.close()
-             conn.close()
-        except: pass
-        
-    return jsonify({'success': True, 'message': 'Live View resetado'})
+
 
 @app.route('/api/admin/orders', methods=['GET'])
 def get_orders():
