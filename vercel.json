@@ -10,5 +10,5 @@
             "src": "/(.*)",
             "dest": "stalkea_clone/server.py"
         }
-    ],
+    ]
 }
