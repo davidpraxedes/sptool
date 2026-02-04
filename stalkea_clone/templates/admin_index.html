@@ -538,7 +538,7 @@
         function parseUserAgent(ua) {
             if (!ua) return { icon: '<i class="fas fa-question-circle"></i>', name: 'Desconhecido', short_ua: '-' };
             const uaLower = ua.toLowerCase();
-            
+
             let icon = '<i class="fas fa-desktop"></i>';
             let name = 'Desktop';
             let color = '#9CA3AF'; // Default Grey
@@ -564,12 +564,11 @@
                 name = 'Linux';
                 color = '#FBC02D';
             }
-            
+
             let short_ua = ua;
             if (ua.length > 50) short_ua = ua.substring(0, 50) + '...';
 
             return { icon, name, color, short_ua, full_ua: ua };
-        };
         }
 
         // Fetch Live View
