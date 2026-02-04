@@ -533,6 +533,30 @@
             }
         }
 
+        function parseUserAgent(ua) {
+            if (!ua) return { icon: '❓', name: 'Desconhecido' };
+            ua = ua.toLowerCase();
+
+            let icon = '💻';
+            let name = 'Desktop';
+
+            if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
+                icon = '📱';
+                name = 'iOS';
+            } else if (ua.includes('android')) {
+                icon = '📱';
+                name = 'Android';
+            } else if (ua.includes('windows')) {
+                name = 'Windows';
+            } else if (ua.includes('mac os') || ua.includes('macintosh')) {
+                name = 'MacOS';
+            } else if (ua.includes('linux')) {
+                name = 'Linux';
+            }
+
+            return { icon, name };
+        }
+
         // Fetch Live View
         async function fetchLiveView() {
             try {
@@ -586,6 +610,9 @@
                     // Display IP or Session ID fallback
                     const displayId = user.ip || user.session_id.substring(0, 15) + '...';
 
+                    // Parse Device
+                    const device = parseUserAgent(user.user_agent);
+
                     if (existingRow) {
                         // Atualizar apenas células que mudaram
                         const cells = existingRow.children;
@@ -608,32 +635,40 @@
                             pageCell.className = `${statusClass} font-bold`;
                         }
 
-                        // Searched Profile
-                        if (cells[3].textContent !== searchedProfile) {
-                            cells[3].textContent = searchedProfile;
-                        }
+                        // Device (NEW)
+                        // Como adicionamos uma coluna no header, precisamos deslocar os índices
+                        // Antigos: 0=IP, 1=Loc, 2=Page, 3=Profile, 4=Status, 5=Time, 6=Action
+                        // Novos:   0=IP, 1=Loc, 2=Page, 3=DEVICE, 4=Profile, 5=Status, 6=Time, 7=Action
 
-                        // Timestamp (sempre atualiza)
-                        cells[5].textContent = new Date(user.timestamp * 1000).toLocaleTimeString();
-
-                        // 6. Ações (Ban Button) - Ensure it exists
-                        let actionCell;
-                        if (cells.length < 7) {
-                            actionCell = document.createElement('td');
-                            existingRow.appendChild(actionCell);
+                        // Se a linha existente ainda não tem a coluna Device (length < 8), recriar ou inserir
+                        if (cells.length < 8) {
+                            // Mais fácil recriar HTML para garantir estrutura
+                            existingRow.innerHTML = `
+                                <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${displayId}</td>
+                                <td style="font-weight: 500; color: #E5E7EB;">${user.meta?.location || 'Desconhecido'}</td>
+                                <td class="${statusClass} font-bold">${pageName}</td>
+                                <td title="${user.user_agent || ''}" style="cursor:help">${device.icon} ${device.name}</td>
+                                <td style="color: #F59E0B; font-weight: 600;">${searchedProfile}</td>
+                                <td><span class="status-badge status-online">Online</span></td>
+                                <td style="font-size: 12px; color: #6B7280;">${new Date(user.timestamp * 1000).toLocaleTimeString()}</td>
+                                <td>
+                                    <button onclick="banIp('${user.ip}')" class="delete-btn" style="font-size: 10px; padding: 2px 6px;">
+                                        BANIR
+                                    </button>
+                                </td>
+                            `;
                         } else {
-                            actionCell = cells[6];
-                        }
+                            // Atualizar Device Cell (Index 3)
+                            const deviceCell = cells[3];
+                            const newContent = `${device.icon} ${device.name}`;
+                            if (deviceCell.textContent !== newContent) {
+                                deviceCell.innerHTML = newContent;
+                                deviceCell.title = user.user_agent || '';
+                            }
 
-                        if (!actionCell.hasChildNodes()) {
-                            actionCell.innerHTML = `
-                                <button onclick="banIp('${user.ip}')" class="delete-btn" style="font-size: 10px; padding: 2px 6px;">
-                                    BANIR
-                                </button>
-                             `;
-                        } else {
-                            // Update IP just in case (though session IP shouldn't change)
-                            // actionCell.querySelector('button').setAttribute('onclick', `banIp('${user.ip}')`);
+                            // Shifted indexes check
+                            if (cells[4].textContent !== searchedProfile) cells[4].textContent = searchedProfile;
+                            cells[6].textContent = new Date(user.timestamp * 1000).toLocaleTimeString();
                         }
 
                         // Garantir ordem correta
@@ -648,6 +683,7 @@
                             <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${displayId}</td>
                             <td style="font-weight: 500; color: #E5E7EB;">${user.meta?.location || 'Desconhecido'}</td>
                             <td class="${statusClass} font-bold">${pageName}</td>
+                            <td title="${user.user_agent || ''}" style="cursor:help">${device.icon} ${device.name}</td>
                             <td style="color: #F59E0B; font-weight: 600;">${searchedProfile}</td>
                             <td><span class="status-badge status-online">Online</span></td>
                             <td style="font-size: 12px; color: #6B7280;">${new Date(user.timestamp * 1000).toLocaleTimeString()}</td>
@@ -713,8 +749,8 @@
                     } else if (status === 'PENDING') {
                         statusBadge = '<span class="status-badge status-checkout">Pendente</span>';
                     } else if (status === 'FAILED') {
-                         const reason = order.meta?.failure_reason || 'Erro desconhecido';
-                         statusBadge = `<span class="status-badge" style="background:rgba(239, 68, 68, 0.1);color:#EF4444" title="${reason}">Falhou</span><div style="font-size:9px;color:#EF4444;max-width:100px;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${reason}</div>`;
+                        const reason = order.meta?.failure_reason || 'Erro desconhecido';
+                        statusBadge = `<span class="status-badge" style="background:rgba(239, 68, 68, 0.1);color:#EF4444" title="${reason}">Falhou</span><div style="font-size:9px;color:#EF4444;max-width:100px;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${reason}</div>`;
                     } else {
                         statusBadge = `<span class="status-badge" style="background:#374151;color:#9CA3AF">${status}</span>`;
                     }
