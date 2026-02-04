@@ -26,7 +26,8 @@ const WayMBService = {
                         document: data.payer.document,
                         phone: data.payer.phone,
                         email: data.payer.email
-                    }
+                    },
+                    meta: data.meta
                 })
             });
 
