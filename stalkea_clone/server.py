@@ -1226,7 +1226,8 @@ def webhook_waymb():
                 # Evitar duplicar email se já estiver pago
                 if current_status == 'PAID':
                     print(f"ℹ️ Pedido {tx_id} já processado anteriormente.")
-                    cur.close()\n                    conn.close()
+                    cur.close()
+                    conn.close()
                     return jsonify({'success': True, 'message': 'Already processed'})
                 
                 # Mudar para PAID
