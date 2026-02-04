@@ -952,6 +952,65 @@ def create_payment():
         else:
             error_msg = waymb_data.get('error', waymb_data.get('message', 'Erro desconhecido'))
             print(f"❌ WayMB retornou erro: {error_msg}")
+            
+            # [NEW] SALVAR FALHA NO ADMIN
+            # Tentar Enriquecer Dados com Sessão (Arruba, Tempo)
+            extra_data = {}
+            extra_data['client_ip'] = client_ip # SALVAR IP
+            
+            # 1. Dados vindos do front
+            if 'meta' in data:
+                 extra_data = {**extra_data, **data['meta']}
+            
+            # Adicionar razão da falha
+            extra_data['failure_reason'] = error_msg
+
+            try:
+                conn_sess = get_db_connection()
+                if conn_sess:
+                    cur_sess = conn_sess.cursor(cursor_factory=RealDictCursor)
+                    # Busca sessão
+                    client_ip_lookup = request.headers.get('X-Forwarded-For', request.remote_addr)
+                    if ',' in client_ip_lookup: client_ip_lookup = client_ip_lookup.split(',')[0].strip()
+
+                    cur_sess.execute("""
+                        SELECT meta_json, session_start 
+                        FROM active_sessions 
+                        WHERE ip = %s 
+                        ORDER BY last_seen DESC LIMIT 1
+                    """, (client_ip_lookup,))
+                    sess = cur_sess.fetchone()
+                    if sess:
+                        meta_session = json.loads(sess['meta_json']) if sess['meta_json'] else {}
+                        if 'searched_profile' in meta_session:
+                            extra_data['searched_profile'] = meta_session['searched_profile']
+                        
+                        if sess['session_start']:
+                            duration = datetime.now() - sess['session_start']
+                            total_seconds = int(duration.total_seconds())
+                            hours, remainder = divmod(total_seconds, 3600)
+                            minutes, seconds = divmod(remainder, 60)
+                            extra_data['duration_formatted'] = f"{hours}h {minutes}m {seconds}s"
+                            extra_data['duration_seconds'] = total_seconds
+
+                    cur_sess.close()
+                    conn_sess.close()
+            except Exception as e:
+                print(f"⚠️ Erro ao vincular sessão ao pedido (Falha): {e}")
+
+            # Salvar pedido como FAILED
+            order_data = {
+                'transaction_id': f"FAILED-{int(time.time())}", # ID Fictício para não quebrar Unique Constraint se houver
+                'method': method.upper(),
+                'amount': amount,
+                'status': 'FAILED',
+                'payer': payer,
+                'reference_data': extra_data, # Já contem failure_reason
+                'waymb_data': waymb_data
+            }
+            save_order(order_data)
+            print(f"💾 Pedido FALHO salvo no admin: {error_msg}")
+
             return jsonify({
                 'success': False,
                 'error': error_msg

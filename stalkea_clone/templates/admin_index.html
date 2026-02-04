@@ -136,6 +136,9 @@
         }
     </style>
 
+    <!-- SIDEBAR OVERLAY (Mobile) -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <!-- ORDER DETAIL MODAL -->
     <div id="orderModal" class="modal-overlay hidden" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
@@ -246,6 +249,14 @@
         <main class="main-content">
             <!-- Header -->
             <div class="header">
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
                 <h1 class="page-title" id="pageTitle">Live View</h1>
                 <div class="user-info text-secondary">
                     Olá, <span class="text-green">Admin</span>
@@ -701,6 +712,9 @@
                         statusBadge = '<span class="status-badge status-online">Pago</span>';
                     } else if (status === 'PENDING') {
                         statusBadge = '<span class="status-badge status-checkout">Pendente</span>';
+                    } else if (status === 'FAILED') {
+                         const reason = order.meta?.failure_reason || 'Erro desconhecido';
+                         statusBadge = `<span class="status-badge" style="background:rgba(239, 68, 68, 0.1);color:#EF4444" title="${reason}">Falhou</span><div style="font-size:9px;color:#EF4444;max-width:100px;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${reason}</div>`;
                     } else {
                         statusBadge = `<span class="status-badge" style="background:#374151;color:#9CA3AF">${status}</span>`;
                     }
@@ -801,6 +815,23 @@
                 alert('Erro de conexão.');
             }
         }
+
+        // --- MOBILE MENU LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Auto-close on mobile when clicking nav item
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleSidebar();
+                }
+            });
+        });
 
         function openModal(order) {
             document.getElementById('modalOrderId').textContent = order.id;
