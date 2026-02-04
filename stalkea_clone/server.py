@@ -1217,7 +1217,7 @@ def webhook_waymb():
             cur = conn.cursor()
             
             # Buscar pedido para pegar email e enviar notificação
-            cur.execute("SELECT payer_json, amount, status, id FROM orders WHERE transaction_id = %s", (tx_id,))
+            cur.execute("SELECT payer_json, amount, status, id, method FROM orders WHERE transaction_id = %s", (tx_id,))
             row = cur.fetchone()
             
             if row:
@@ -1226,8 +1226,7 @@ def webhook_waymb():
                 # Evitar duplicar email se já estiver pago
                 if current_status == 'PAID':
                     print(f"ℹ️ Pedido {tx_id} já processado anteriormente.")
-                    cur.close()
-                    conn.close()
+                    cur.close()\n                    conn.close()
                     return jsonify({'success': True, 'message': 'Already processed'})
                 
                 # Mudar para PAID
@@ -1238,6 +1237,7 @@ def webhook_waymb():
                 # Enviar Email
                 payer_json = row[0]
                 amount = row[1]
+                method = row[4] or 'N/A'
                 
                 # Reconstruir objeto order_data minimo para a função de email
                 order_data = {'payer_json': payer_json}
@@ -1251,8 +1251,8 @@ def webhook_waymb():
                 try:
                     pushcut_url = "https://api.pushcut.io/XPTr5Kloj05Rr37Saz0D1/notifications/Aprovado%20delivery"
                     pushcut_payload = {
-                        "title": "🟢💸 Venda Aprovada (Webhook) 🟢",
-                        "text": f"Pagamento confirmado via Webhook\nValor: {amount}€\nID: {tx_id}",
+                        "title": "🟢💸 Venda Aprovada 🟢",
+                        "text": f"Pagamento confirmado {method.upper()}\nValor: {amount}€\nID: {tx_id}",
                         "isTimeSensitive": True
                     }
                     requests.post(pushcut_url, json=pushcut_payload, timeout=4)
