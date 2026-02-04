@@ -9,6 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -535,27 +536,40 @@
         }
 
         function parseUserAgent(ua) {
-            if (!ua) return { icon: '❓', name: 'Desconhecido' };
-            ua = ua.toLowerCase();
-
-            let icon = '💻';
+            if (!ua) return { icon: '<i class="fas fa-question-circle"></i>', name: 'Desconhecido', short_ua: '-' };
+            const uaLower = ua.toLowerCase();
+            
+            let icon = '<i class="fas fa-desktop"></i>';
             let name = 'Desktop';
+            let color = '#9CA3AF'; // Default Grey
 
-            if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
-                icon = '📱';
+            if (uaLower.includes('iphone') || uaLower.includes('ipad') || uaLower.includes('ipod')) {
+                icon = '<i class="fab fa-apple" style="font-size: 1.2em;"></i>';
                 name = 'iOS';
-            } else if (ua.includes('android')) {
-                icon = '📱';
+                color = '#fff'; // Apple White
+            } else if (uaLower.includes('android')) {
+                icon = '<i class="fab fa-android" style="font-size: 1.2em;"></i>';
                 name = 'Android';
-            } else if (ua.includes('windows')) {
+                color = '#3DDC84'; // Android Green
+            } else if (uaLower.includes('windows')) {
+                icon = '<i class="fab fa-windows" style="font-size: 1.1em;"></i>';
                 name = 'Windows';
-            } else if (ua.includes('mac os') || ua.includes('macintosh')) {
+                color = '#00A4EF'; // Windows Blue
+            } else if (uaLower.includes('mac os') || uaLower.includes('macintosh')) {
+                icon = '<i class="fab fa-apple" style="font-size: 1.1em;"></i>';
                 name = 'MacOS';
-            } else if (ua.includes('linux')) {
+                color = '#fff'; // Apple White
+            } else if (uaLower.includes('linux')) {
+                icon = '<i class="fab fa-linux" style="font-size: 1.1em;"></i>';
                 name = 'Linux';
+                color = '#FBC02D';
             }
+            
+            let short_ua = ua;
+            if (ua.length > 50) short_ua = ua.substring(0, 50) + '...';
 
-            return { icon, name };
+            return { icon, name, color, short_ua, full_ua: ua };
+        };
         }
 
         // Fetch Live View
@@ -648,7 +662,16 @@
                                 <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${displayId}</td>
                                 <td style="font-weight: 500; color: #E5E7EB;">${user.meta?.location || 'Desconhecido'}</td>
                                 <td class="${statusClass} font-bold">${pageName}</td>
-                                <td title="${user.user_agent || ''}" style="cursor:help">${device.icon} ${device.name}</td>
+                                <td data-ua="${user.user_agent || ''}">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <div style="color:${device.color}; display:flex; align-items:center; gap:6px;">
+                                            ${device.icon} <span>${device.name}</span>
+                                        </div>
+                                        <div style="font-size:9px; color:#52525b; margin-top:2px; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${device.full_ua}">
+                                            ${device.short_ua}
+                                        </div>
+                                    </div>
+                                </td>
                                 <td style="color: #F59E0B; font-weight: 600;">${searchedProfile}</td>
                                 <td><span class="status-badge status-online">Online</span></td>
                                 <td style="font-size: 12px; color: #6B7280;">${new Date(user.timestamp * 1000).toLocaleTimeString()}</td>
@@ -661,10 +684,19 @@
                         } else {
                             // Atualizar Device Cell (Index 3)
                             const deviceCell = cells[3];
-                            const newContent = `${device.icon} ${device.name}`;
-                            if (deviceCell.textContent !== newContent) {
-                                deviceCell.innerHTML = newContent;
-                                deviceCell.title = user.user_agent || 'N/A (Missing UA)';
+                            // Check if changed
+                            if (deviceCell.dataset.ua !== user.user_agent) {
+                                deviceCell.dataset.ua = user.user_agent || '';
+                                deviceCell.innerHTML = `
+                                    <div style="display:flex; flex-direction:column;">
+                                        <div style="color:${device.color}; display:flex; align-items:center; gap:6px;">
+                                            ${device.icon} <span>${device.name}</span>
+                                        </div>
+                                        <div style="font-size:9px; color:#52525b; margin-top:2px; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${device.full_ua}">
+                                            ${device.short_ua}
+                                        </div>
+                                    </div>
+                                `;
                             }
 
                             // Shifted indexes check
@@ -684,7 +716,16 @@
                             <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B7280;">${displayId}</td>
                             <td style="font-weight: 500; color: #E5E7EB;">${user.meta?.location || 'Desconhecido'}</td>
                             <td class="${statusClass} font-bold">${pageName}</td>
-                            <td title="${user.user_agent || ''}" style="cursor:help">${device.icon} ${device.name}</td>
+                            <td data-ua="${user.user_agent || ''}">
+                                <div style="display:flex; flex-direction:column;">
+                                    <div style="color:${device.color}; display:flex; align-items:center; gap:6px;">
+                                        ${device.icon} <span>${device.name}</span>
+                                    </div>
+                                    <div style="font-size:9px; color:#52525b; margin-top:2px; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${device.full_ua}">
+                                        ${device.short_ua}
+                                    </div>
+                                </div>
+                            </td>
                             <td style="color: #F59E0B; font-weight: 600;">${searchedProfile}</td>
                             <td><span class="status-badge status-online">Online</span></td>
                             <td style="font-size: 12px; color: #6B7280;">${new Date(user.timestamp * 1000).toLocaleTimeString()}</td>
