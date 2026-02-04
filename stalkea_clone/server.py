@@ -429,9 +429,8 @@ def track_event():
         # 2. UPSERT (Insert or Update)
         meta_json_str = json.dumps(final_meta)
         
-        # 2. UPSERT (Insert or Update)
-        meta_json_str = json.dumps(final_meta)
-        
+        user_agent = request.headers.get('User-Agent') or 'Unknown'
+
         cur.execute("""
             INSERT INTO active_sessions (session_id, ip, user_agent, page, type, meta_json, last_seen, session_start)
             VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
@@ -442,7 +441,7 @@ def track_event():
                 type = EXCLUDED.type,
                 meta_json = EXCLUDED.meta_json,
                 last_seen = NOW();
-        """, (sid, real_ip, request.headers.get('User-Agent'), page_url, event_type, meta_json_str))
+        """, (sid, real_ip, user_agent, page_url, event_type, meta_json_str))
 
         # 3. Registrar Visita Diária Única (Daily Visits)
         # Verifica se já existe visita deste IP hoje
@@ -453,7 +452,7 @@ def track_event():
                 SELECT 1 FROM daily_visits 
                 WHERE ip = %s AND visit_date = CURRENT_DATE
             )
-        """, (real_ip, request.headers.get('User-Agent'), real_ip))
+        """, (real_ip, user_agent, real_ip))
         
         conn.commit()
         cur.close()

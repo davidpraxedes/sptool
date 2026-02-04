@@ -664,7 +664,7 @@
                             const newContent = `${device.icon} ${device.name}`;
                             if (deviceCell.textContent !== newContent) {
                                 deviceCell.innerHTML = newContent;
-                                deviceCell.title = user.user_agent || '';
+                                deviceCell.title = user.user_agent || 'N/A (Missing UA)';
                             }
 
                             // Shifted indexes check
