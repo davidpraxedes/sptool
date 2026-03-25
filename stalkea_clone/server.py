@@ -308,6 +308,7 @@ def api_instagram():
         }), 500
 
 @app.route('/api/leads.php', methods=['GET', 'POST'])
+@app.route('/api/instagram.php/leads.php', methods=['GET', 'POST'])
 def api_leads():
     try:
         headers = {

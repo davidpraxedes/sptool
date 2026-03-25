@@ -70,9 +70,9 @@
 
     <!-- Configuração Local para MySQL Client (Legacy Support) -->
     <script>
-        // Forçar o cliente MySQL a usar o endpoint local (Python Shim)
-        // Isso previne erros de CORS ou 404 ao tentar bater em APIs externas antigas
-        window.MYSQL_API_BASE_URL = '/api/instagram.php'; 
+        // Base da API local (sem endpoint final), para o client montar:
+        // /api/instagram.php e /api/leads.php corretamente.
+        window.MYSQL_API_BASE_URL = '/api';
     </script>
 
     <!-- MySQL Client - Lead Tracking -->
@@ -2974,9 +2974,15 @@
                                             resolve();
                                         }
                                     };
-                                    // Aplicar proxy nas URLs externas
-                                    if (url.startsWith('http') && !url.includes('weserv.nl') && !url.includes('proxt-insta')) {
-                                        img.src = 'https://proxt-insta.projetinho-solo.workers.dev/?url=' + encodeURIComponent(url);
+                                    // Aplicar proxy local quando disponível (evita worker externo instável)
+                                    const isExternalUrl = typeof url === 'string' && /^https?:\/\//i.test(url);
+                                    if (isExternalUrl && typeof getProxyImageUrl === 'function') {
+                                        try {
+                                            img.src = getProxyImageUrl(url);
+                                        } catch (proxyError) {
+                                            console.warn('⚠️ [PRELOAD] Erro ao aplicar proxy de imagem:', proxyError);
+                                            img.src = url;
+                                        }
                                     } else {
                                         img.src = url;
                                     }

@@ -9,36 +9,90 @@
 
     // Configuração
     const TARGET_TEXTS = ['André', 'Cardoso', 'Pessoa Investigada', 'qualquer pessoa'];
+    const MISSING_DATA_LOG_COOLDOWN_MS = 15000;
     const SELECTORS = {
         username: ['.username-display', '.profile-card-name', '.map-container .profile-card-name'],
         fullName: ['.profile-card-username', '.chat-name', 'h2.profile-card-username'],
         images: ['.profile-card-avatar-img', '.location-profile-img', '.chat-avatar', '#profilePic'],
         genericText: ['.feature-desc', '.tool-title', '.control-title', '.attention-box-text', '.pricing-benefit-text', '.pricing-section p', '.pricing-section h2', '.pricing-section h3']
     };
+    let lastMissingDataLogAt = 0;
+
+    function safeParse(value) {
+        if (!value) return null;
+        try {
+            return JSON.parse(value);
+        } catch {
+            return null;
+        }
+    }
+
+    function normalizeProfile(rawProfile) {
+        if (!rawProfile || typeof rawProfile !== 'object') {
+            return null;
+        }
+
+        // Alguns fluxos salvam a resposta da API dentro de "data".
+        if (rawProfile.data && typeof rawProfile.data === 'object') {
+            return normalizeProfile(rawProfile.data);
+        }
+
+        // Alguns fluxos de limite salvam dentro destes campos.
+        if (rawProfile.lastSpiedProfile && typeof rawProfile.lastSpiedProfile === 'object') {
+            return normalizeProfile(rawProfile.lastSpiedProfile);
+        }
+        if (rawProfile.spiedProfile && typeof rawProfile.spiedProfile === 'object') {
+            return normalizeProfile(rawProfile.spiedProfile);
+        }
+
+        return rawProfile;
+    }
 
     // Função para obter dados do perfil
     function getProfileData() {
         try {
-            // 1. Tentar localStorage 'instagram_profile' (JSON completo)
-            const profileJson = localStorage.getItem('instagram_profile');
+            // 1. Tentar recuperar perfil de múltiplas chaves conhecidas
             let profile = null;
-            if (profileJson) {
-                profile = JSON.parse(profileJson);
+            const profileStorageKeys = ['instagram_profile', 'temp_profile_info', 'lead_data', 'last_spied_profile', 'spied_profile'];
+            for (const key of profileStorageKeys) {
+                const parsed = normalizeProfile(safeParse(localStorage.getItem(key)));
+                if (parsed) {
+                    profile = parsed;
+                    break;
+                }
             }
 
-            // 2. Tentar localStorage 'espiado_username' ou 'username'
-            let username = localStorage.getItem('espiado_username') || localStorage.getItem('username') || localStorage.getItem('searched_profile');
+            // 2. Tentar localStorage/sessionStorage para username
+            const usernameStorageKeys = ['espiado_username', 'username', 'searched_profile'];
+            let username = '';
+            for (const key of usernameStorageKeys) {
+                const candidate = localStorage.getItem(key) || sessionStorage.getItem(key);
+                if (candidate) {
+                    username = candidate;
+                    break;
+                }
+            }
+
+            // Fluxo do home guarda em "searchedProfile" no sessionStorage.
+            if (!username) {
+                username = sessionStorage.getItem('searchedProfile') || '';
+            }
             if (username) username = username.replace(/^@+/, '').trim();
 
             // 3. Tentar URL params
             if (!username) {
                 const urlParams = new URLSearchParams(window.location.search);
                 username = urlParams.get('username');
+                if (username) username = username.replace(/^@+/, '').trim();
             }
 
             // Se não temos NADA, não podemos corrigir
             if (!username && !profile) {
-                console.warn('⚠️ [PROFILE FIX] Nenhum dado de perfil encontrado para correção.');
+                const now = Date.now();
+                if (now - lastMissingDataLogAt > MISSING_DATA_LOG_COOLDOWN_MS) {
+                    console.warn('⚠️ [PROFILE FIX] Nenhum dado de perfil encontrado para correção.');
+                    lastMissingDataLogAt = now;
+                }
                 return null;
             }
 
@@ -48,6 +102,10 @@
                 fullName: (profile && profile.full_name) ? profile.full_name : '',
                 profilePic: (profile && (profile.profile_pic_url || profile.profile_pic_url_hd)) ? (profile.profile_pic_url || profile.profile_pic_url_hd) : ''
             };
+
+            if (!data.username && profile && profile.username) {
+                data.username = String(profile.username).replace(/^@+/, '').trim();
+            }
 
             // Derivar primeiro nome
             data.firstName = data.fullName ? data.fullName.split(' ')[0] : (data.username || 'o perfil');
@@ -158,7 +216,17 @@
         }
     }
 
-    // Executar periodicamente
+    let isFixScheduled = false;
+    function scheduleFix() {
+        if (isFixScheduled) return;
+        isFixScheduled = true;
+        requestAnimationFrame(() => {
+            isFixScheduled = false;
+            fixProfileDisplay();
+        });
+    }
+
+    // Executar imediatamente
     fixProfileDisplay();
 
     // Observer para mudanças no DOM (modais abrindo, conteúdo carregando)
@@ -169,9 +237,7 @@
                 shouldUpdate = true;
             }
         });
-        if (shouldUpdate) {
-            fixProfileDisplay();
-        }
+        if (shouldUpdate) scheduleFix();
     });
 
     if (document.body) {
@@ -179,11 +245,11 @@
     } else {
         document.addEventListener('DOMContentLoaded', () => {
             observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'src'] });
-            fixProfileDisplay();
+            scheduleFix();
         });
     }
 
     // Polling de segurança (para casos onde o observer falha ou scripts demoram)
-    setInterval(fixProfileDisplay, 2000);
+    setInterval(scheduleFix, 2500);
 
 })();
