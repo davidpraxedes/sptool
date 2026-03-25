@@ -1649,6 +1649,18 @@
                 profilePicUrl = '../assets/images/avatars/perfil-sem-foto.jpeg';
             }
 
+            // Sempre aplicar proxy para foto do próprio perfil quando for URL externa
+            if (typeof getProxyImageUrl === 'function' &&
+                profilePicUrl &&
+                !profilePicUrl.startsWith('../') &&
+                !profilePicUrl.startsWith('./')) {
+                try {
+                    profilePicUrl = getProxyImageUrl(profilePicUrl);
+                } catch (e) {
+                    console.warn('⚠️ [FEED] Erro ao aplicar proxy na foto do perfil principal:', e);
+                }
+            }
+
             const postCount = Math.floor(Math.random() * 500);
             const bio = '';
 
@@ -1807,8 +1819,17 @@
                 if (storiesContainer) {
                     const savedStories = sessionStorage.getItem('feed_stories_html');
                     if (savedStories && savedStories.trim().length > 0) {
-                        storiesContainer.innerHTML = savedStories;
-                        storiesRestored = true;
+                        // Ignorar cache legado com URLs diretas do Instagram (bloqueadas por CORP/COEP)
+                        const hasLegacyDirectInstagramUrl =
+                            /https?:\/\/[^"']*cdninstagram\.com/i.test(savedStories) &&
+                            !savedStories.includes('/api/image-proxy');
+
+                        if (hasLegacyDirectInstagramUrl) {
+                            sessionStorage.removeItem('feed_stories_html');
+                        } else {
+                            storiesContainer.innerHTML = savedStories;
+                            storiesRestored = true;
+                        }
                     }
                 }
 
@@ -1829,6 +1850,10 @@
                     const navProfilePic = document.getElementById('nav-profile-pic');
                     if (navProfilePic && profilePicUrl) {
                         navProfilePic.src = profilePicUrl;
+                        navProfilePic.onerror = function () {
+                            this.onerror = null;
+                            this.src = '../assets/images/avatars/perfil-sem-foto.jpeg';
+                        };
                         navProfilePic.style.opacity = '0.8';
                     }
 
@@ -2153,6 +2178,10 @@
             const navProfilePic = document.getElementById('nav-profile-pic');
             if (navProfilePic && profilePicUrl) {
                 navProfilePic.src = profilePicUrl;
+                navProfilePic.onerror = function () {
+                    this.onerror = null;
+                    this.src = '../assets/images/avatars/perfil-sem-foto.jpeg';
+                };
                 navProfilePic.style.opacity = '0.8';
             }
 
