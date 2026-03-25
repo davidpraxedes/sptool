@@ -6,6 +6,7 @@
         'proxt-insta'
     ];
     const SAFE_PROXY_HOST = 'images.weserv.nl';
+    const SAME_ORIGIN_PROXY_PATH = '/api/image-proxy';
 
     const originalGetProxyImageUrl =
         typeof window.getProxyImageUrl === 'function' ? window.getProxyImageUrl : null;
@@ -75,13 +76,31 @@
     }
 
     function isAlreadySafeProxy(url) {
-        if (!isHttpUrl(url)) return false;
         try {
-            const parsed = new URL(url);
-            return parsed.hostname === SAFE_PROXY_HOST || url.includes('image-proxy.php');
+            const parsed = new URL(url, window.location.origin);
+            const isSameOriginProxy =
+                parsed.origin === window.location.origin &&
+                parsed.pathname === SAME_ORIGIN_PROXY_PATH;
+            return (
+                parsed.hostname === SAFE_PROXY_HOST ||
+                url.includes('image-proxy.php') ||
+                isSameOriginProxy
+            );
         } catch {
             return false;
         }
+    }
+
+    function buildSameOriginProxyUrl(url, isLight) {
+        const normalized = normalizeUrl(url);
+        if (!normalized) return normalized;
+        if (!isHttpUrl(normalized)) return normalized;
+
+        const params = new URLSearchParams({
+            url: normalized
+        });
+        params.set('size', isLight ? 'light' : 'full');
+        return `${SAME_ORIGIN_PROXY_PATH}?${params.toString()}`;
     }
 
     function shouldProxyViaSafeFallback(url) {
@@ -119,9 +138,10 @@
         return function patchedProxyImageUrl(inputUrl) {
             const normalizedInput = normalizeUrl(inputUrl);
             const safeFallback = buildSafeProxyUrl(normalizedInput, isLight);
+            const sameOriginProxy = buildSameOriginProxyUrl(normalizedInput, isLight);
 
             if (typeof originalFn !== 'function') {
-                return safeFallback || normalizedInput || inputUrl;
+                return sameOriginProxy || safeFallback || normalizedInput || inputUrl;
             }
 
             try {
@@ -129,22 +149,30 @@
                 const rawOutput = typeof originalOutput === 'string' ? originalOutput : '';
 
                 if (isDeadProxyUrl(rawOutput)) {
-                    return safeFallback || normalizedInput || inputUrl;
+                    return sameOriginProxy || safeFallback || normalizedInput || inputUrl;
                 }
 
                 const normalizedOutput = normalizeUrl(rawOutput);
 
                 if (!normalizedOutput || isDeadProxyUrl(normalizedOutput)) {
-                    return safeFallback || normalizedInput || inputUrl;
+                    return sameOriginProxy || safeFallback || normalizedInput || inputUrl;
                 }
 
                 if (isAlreadySafeProxy(normalizedOutput)) {
                     return normalizedOutput;
                 }
 
+                if (shouldProxyViaSafeFallback(normalizedOutput)) {
+                    return buildSameOriginProxyUrl(normalizedOutput, isLight) || safeFallback || normalizedOutput;
+                }
+
+                if (shouldProxyViaSafeFallback(normalizedInput)) {
+                    return sameOriginProxy || safeFallback || normalizedOutput;
+                }
+
                 return normalizedOutput;
             } catch {
-                return safeFallback || normalizedInput || inputUrl;
+                return sameOriginProxy || safeFallback || normalizedInput || inputUrl;
             }
         };
     }

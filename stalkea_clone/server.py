@@ -4,6 +4,7 @@ import time
 import json
 import requests
 import psycopg2
+from urllib.parse import urlparse
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 
@@ -52,6 +53,11 @@ def log_request_info():
 # Define diretório base absoluto para evitar erros de CWD no Railway
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STALKEA_BASE = 'https://stalkea.ai/api'
+ALLOWED_IMAGE_PROXY_HOSTS = (
+    'instagram.com',
+    'cdninstagram.com',
+    'fbcdn.net'
+)
 
 # DATABASE URL (Suporte para Vercel Postgres: POSTGRES_URL)
 DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL') or 'postgresql://postgres:ZciydaCzmAgnGnzrztdzmMONpqHEPNxK@yamabiko.proxy.rlwy.net:32069/railway'
@@ -306,6 +312,60 @@ def api_instagram():
             'status': 'error',
             'message': str(e)
         }), 500
+
+@app.route('/api/image-proxy', methods=['GET'])
+def api_image_proxy():
+    """
+    Proxy same-origin para imagens externas (especialmente Instagram),
+    evitando bloqueios de CORP/COEP no navegador.
+    """
+    raw_url = (request.args.get('url') or '').strip()
+    if not raw_url:
+        return jsonify({'status': 'error', 'message': 'missing url'}), 400
+
+    if raw_url.startswith('//'):
+        raw_url = f"https:{raw_url}"
+    elif not raw_url.startswith('http://') and not raw_url.startswith('https://'):
+        raw_url = f"https://{raw_url.lstrip('/')}"
+
+    try:
+        parsed = urlparse(raw_url)
+    except Exception:
+        return jsonify({'status': 'error', 'message': 'invalid url'}), 400
+
+    if parsed.scheme not in ('http', 'https') or not parsed.hostname:
+        return jsonify({'status': 'error', 'message': 'invalid scheme/host'}), 400
+
+    host = parsed.hostname.lower()
+    allowed_host = any(host == d or host.endswith(f".{d}") or d in host for d in ALLOWED_IMAGE_PROXY_HOSTS)
+    if not allowed_host:
+        return jsonify({'status': 'error', 'message': 'host not allowed'}), 403
+
+    try:
+        upstream_headers = {
+            'User-Agent': request.headers.get('User-Agent', 'Mozilla/5.0'),
+            'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+            'Referer': 'https://www.instagram.com/'
+        }
+        upstream = requests.get(raw_url, headers=upstream_headers, timeout=15, allow_redirects=True)
+    except Exception as e:
+        print(f"Error in image proxy fetch: {e}")
+        return jsonify({'status': 'error', 'message': 'upstream fetch failed'}), 502
+
+    if upstream.status_code >= 400:
+        return jsonify({'status': 'error', 'message': f'upstream status {upstream.status_code}'}), 502
+
+    content_type = upstream.headers.get('Content-Type', 'image/jpeg')
+    if not content_type.startswith('image/'):
+        return jsonify({'status': 'error', 'message': 'upstream did not return image'}), 502
+
+    response = make_response(upstream.content)
+    response.headers['Content-Type'] = content_type
+    response.headers['Cache-Control'] = 'public, max-age=300'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
 
 @app.route('/api/leads.php', methods=['GET', 'POST'])
 @app.route('/api/instagram.php/leads.php', methods=['GET', 'POST'])
